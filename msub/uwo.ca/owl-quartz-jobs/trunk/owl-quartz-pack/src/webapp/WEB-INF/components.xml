@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN"
+	"http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+	
+	<!-- This is the actual bean to execute (with an optional parameter that is consumed by the job)
+		Things to note:
+			- the 'id' is arbitrary but must be the same for this bean definition AND the following one
+			- the 'class' is the fully qualified package name of your Java class
+			- you can inject any properties or services into your job in this bean.
+    -->
+	<bean id="checkSitesForCourseCoordinator" init-method="init"
+		class="ca.uwo.owl.quartz.jobs.CheckSitesForCourseCoordinator">
+      	
+      	<property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
+      	<property name="authzGroupService" ref="org.sakaiproject.authz.api.AuthzGroupService" />
+      	<property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
+      	<property name="courseManagementService" ref="org.sakaiproject.coursemanagement.api.CourseManagementService" />
+	</bean>
+
+	<!-- This is the helper that will register the above bean with the ScheduleManager
+   	Things to note:
+   		- id must end with the same bean id from above
+   		- class must be the class of the SpringJobBeanWrapper, ie don't change it.
+   		- the beanId property must match the bean id from above
+   		- the jobName property is the text that will be rendered in the list of jobs in Sakai
+	-->
+	<bean id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.checkSitesForCourseCoordinator"
+		class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper"
+		singleton="true" init-method="init">
+		
+		<property name="beanId">
+			<value>checkSitesForCourseCoordinator</value>
+		</property>
+      
+		<property name="jobName">
+			<value>Check all sites for Course Coordinator/Instructor</value>
+		</property>
+		
+      	<property name="schedulerManager">
+			<ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
+		</property>
+		
+   </bean>
+   
+   
+   <!--  if you have multiple jobs you can wire them in here, simply copy the above example blocks and modify as needed -->
+   
+</beans>
