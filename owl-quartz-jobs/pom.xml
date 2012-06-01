@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+	<modelVersion>4.0.0</modelVersion>
+	<name>OWL Quartz Jobs</name>
+	<groupId>ca.uwo.owl</groupId>
+	<artifactId>owl-quartz-jobs</artifactId>
+
+	<organization>
+        <name>Western University</name>
+        <url>http://uwo.ca/</url>
+    </organization>
+    <inceptionYear>2012</inceptionYear>
+
+	<parent>
+		<groupId>ca.uwo.owl</groupId>
+        <artifactId>owl-quartz-jobs-base</artifactId>
+        <version>1.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+	<packaging>jar</packaging>
+  	<properties>
+    	<deploy.target>shared</deploy.target>
+  	</properties>
+  	
+	<dependencies>
+		<dependency>
+			<groupId>quartz</groupId>
+			<artifactId>quartz</artifactId>
+			<version>1.5.2</version>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+    	
+		<!-- Sakai dependencies -->
+        <dependency>
+            <groupId>org.sakaiproject.kernel</groupId>
+            <artifactId>sakai-kernel-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.sakaiproject.kernel</groupId>
+            <artifactId>sakai-component-manager</artifactId>
+        </dependency>
+        <dependency>
+			<groupId>org.sakaiproject.kernel</groupId>
+  			<artifactId>sakai-kernel-util</artifactId>
+		</dependency>
+	    <dependency>
+			<groupId>org.sakaiproject.edu-services.course-management</groupId>
+			<artifactId>coursemanagement-api</artifactId>
+		</dependency>
+	</dependencies>
+</project>

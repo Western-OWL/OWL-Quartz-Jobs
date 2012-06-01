@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+    <name>OWL Quartz Jobs Base</name>
+    <groupId>ca.uwo.owl</groupId>
+    <artifactId>owl-quartz-jobs-base</artifactId>
+    
+    <organization>
+        <name>Western University</name>
+        <url>http://uwo.ca/</url>
+    </organization>
+    <inceptionYear>2012</inceptionYear>
+    
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <parent>
+    	<artifactId>base</artifactId>
+    	<groupId>org.sakaiproject</groupId>
+    	<version>2.8-SNAPSHOT</version>
+    	<relativePath>../pom.xml</relativePath>
+  	</parent>
+
+    <modules>
+        <module>owl-quartz-pack</module>
+        <module>owl-quartz-jobs</module>
+    </modules>
+
+    <!-- handles the management of all related dependencies -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>ca.uwo.owl.quartz</groupId>
+            	<artifactId>owl-quartz-jobs</artifactId>
+                <version>1.0</version>
+            </dependency>
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>0.9.3</version>
+				<scope>provided</scope>
+			</dependency>
+          </dependencies>
+    </dependencyManagement>
+</project>
