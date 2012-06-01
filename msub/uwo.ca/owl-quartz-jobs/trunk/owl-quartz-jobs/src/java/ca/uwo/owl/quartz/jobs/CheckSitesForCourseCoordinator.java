@@ -32,9 +32,10 @@ import org.sakaiproject.tool.api.SessionManager;
 /**
  * This Quartz job is responsible for scanning all existing course sites in Sakai.
  * It will then determine if the current site has both an 'Instructor' and a
- * 'Course Coordinator' in the roster. If yes, the job will remove the 'Instructor'
- * role from the course coordinator user for this site (maintain role). If no, it 
- * does nothing.
+ * 'Course Coordinator' in the roster (or any of the other 'maintain' roles defined
+ * in sakai.properties). If yes, the job will remove the 'Instructor' role from the 
+ * course coordinator (or other 'maintain' type) user for this site (maintain role). 
+ * If no, it does nothing.
  * 
  * This project was derived and refactored from the quartz-example project provided
  * by Steve Swinsburg, which can be found here:
@@ -121,20 +122,27 @@ public class CheckSitesForCourseCoordinator implements Job
 				}
 			}
 			
-			// If there are more than one entries in the member-sakoraRole map...
+			// If there are more than one entry in the member-sakoraRole map...
 			if( memberRoleMap.size() > 1 )
 			{
-				// Determine if they all have the 'Instructor' course site role (primary role)
-				boolean allHaveInstructorRole = true;
-				for( Member member : memberRoleMap.keySet() )
-					if( !primaryRole.equalsIgnoreCase( member.getRole().getId() ) )
-						allHaveInstructorRole = false;
 				
-				// If they all have the 'Instructor' course site role...
-				if( allHaveInstructorRole )
+				// Get all the members that have the course role of 'Instructor'
+				Map<Member, String> membersWithInstructorCourseRole = new HashMap<Member, String>();
+				for( Member member : memberRoleMap.keySet() )
+					if( primaryRole.equalsIgnoreCase( member.getRole().getId() ) )
+						membersWithInstructorCourseRole.put( member, memberRoleMap.get( member ) );
+				
+				// Determine if the REAL Instructor is there
+				boolean realInstructorPresent = false;
+				for( Member member : memberRoleMap.keySet() )
+					if( primaryRole.equalsIgnoreCase( member.getRole().getId() ) && primarySakora.equalsIgnoreCase( memberRoleMap.get( member ) ) )
+						realInstructorPresent = true;
+				
+				// If the real instructor is present AND there is more than one user with the 'Instructor' course role...
+				if( realInstructorPresent && membersWithInstructorCourseRole.size() > 1 )
 				{
-					// Loop through the member-sakoraRole map...
-					for( Member member : memberRoleMap.keySet() )
+					// Loop through the membersWithInstructorsCourseRole map
+					for( Member member : membersWithInstructorCourseRole.keySet() )
 					{
 						// If this user is NOT marked as an Instructor in the Sakora data...
 						if( !memberRoleMap.get( member ).equals( primarySakora ) )
