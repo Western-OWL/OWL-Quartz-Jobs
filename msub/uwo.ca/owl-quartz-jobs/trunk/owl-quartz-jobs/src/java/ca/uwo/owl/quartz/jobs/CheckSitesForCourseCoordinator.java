@@ -28,7 +28,6 @@ import org.sakaiproject.site.api.SiteService.SortType;
 import org.sakaiproject.tool.api.Session;
 import org.sakaiproject.tool.api.SessionManager;
 
-
 /**
  * This Quartz job is responsible for scanning all existing course sites in Sakai.
  * It will then determine if the current site has both an 'Instructor' and a
@@ -125,7 +124,6 @@ public class CheckSitesForCourseCoordinator implements Job
 			// If there are more than one entry in the member-sakoraRole map...
 			if( memberRoleMap.size() > 1 )
 			{
-				
 				// Get all the members that have the course role of 'Instructor'
 				Map<Member, String> membersWithInstructorCourseRole = new HashMap<Member, String>();
 				for( Member member : memberRoleMap.keySet() )
