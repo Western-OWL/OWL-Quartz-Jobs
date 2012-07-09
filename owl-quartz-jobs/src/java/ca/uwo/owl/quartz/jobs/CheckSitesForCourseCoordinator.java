@@ -94,11 +94,10 @@ public class CheckSitesForCourseCoordinator implements Job
 		List<Site> sites = siteService.getSites( SelectionType.ANY, "course", null, null, SortType.NONE, null );
 		for( Site site : sites )
 		{
-			Map<Member, String> memberRoleMap = new HashMap<Member, String>();
-			
 			// Get the realm ID of the site; get the sections for the site
-			String realmId = siteService.siteReference( site.getId() );			
+			String realmId = siteService.siteReference( site.getId() );
 			Set<String> sectionIds = authzGroupService.getProviderIds( realmId );
+			Map<Member, String> memberRoleMap = new HashMap<Member, String>();
 			
 			// Loop through a list of members for this course site
 			Set<Member> members = site.getMembers();
@@ -109,16 +108,10 @@ public class CheckSitesForCourseCoordinator implements Job
 				Map<String, String> sectionRoles = courseManagementService.findSectionRoles( userEID );
 				
 				// Loop through the sections in the section-role map...
-				for( String key : sectionRoles.keySet() )
-				{
-					// If the current section is for the current site...
-					if( sectionIds.contains( key ) )
-					{
-						// If the list of sakora roles contains this users sakora role, add them to the member-sakoraRole map
-						if( sakoraRoles.contains( sectionRoles.get( key ) ) )
-							memberRoleMap.put( member, sectionRoles.get( key ) );
-					}
-				}
+				for( String section : sectionRoles.keySet() )
+					if( sectionIds.contains( section ) )								// If the current section is for the current site
+						if( sakoraRoles.contains( sectionRoles.get( section ) ) )		// If the list of sakora roles contains this users sakora role
+							memberRoleMap.put( member, sectionRoles.get( section ) );	// Add them to the member-sakoraRole map
 			}
 			
 			// If there are more than one entry in the member-sakoraRole map...
