@@ -43,6 +43,36 @@
 		</property>
 		
    </bean>
+
+	<bean id="checkQuartzJobs"
+		class="ca.uwo.owl.quartz.jobs.CheckQuartzJobs">
+		<property name="triggerEventManager">
+			<ref bean="org.sakaiproject.api.app.scheduler.events.TriggerEventManager" />
+		</property>
+		<property name="emailTemplateService">
+			<ref bean="org.sakaiproject.emailtemplateservice.service.EmailTemplateService" />
+		</property>
+		<property name="developerHelperService">
+			<ref bean="org.sakaiproject.entitybroker.DeveloperHelperService" />
+		</property>
+	</bean>
+
+	<bean id = "org.sakaiproject.api.app.scheduler.JobBeanWrapper.checkQuartzJobs"
+		class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper"
+		singleton="true" init-method="init">
+
+		<property name="beanId">
+			<value>checkQuartzJobs</value>
+		</property>
+		
+		<property name="jobName">
+			<value>Check that other quartz jobs have not been missed</value>
+		</property>
+
+		<property name="schedulerManager">
+			<ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
+		</property>
+	</bean>
    
    
    <!--  if you have multiple jobs you can wire them in here, simply copy the above example blocks and modify as needed -->
