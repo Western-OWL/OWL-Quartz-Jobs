@@ -44,7 +44,7 @@
 		
    </bean>
 
-	<bean id="checkQuartzJobs"
+	<bean id="checkQuartzJobs" init-method="init"
 		class="ca.uwo.owl.quartz.jobs.CheckQuartzJobs">
 		<property name="triggerEventManager">
 			<ref bean="org.sakaiproject.api.app.scheduler.events.TriggerEventManager" />
