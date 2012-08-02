@@ -46,18 +46,11 @@
 
 	<bean id="checkQuartzJobs" init-method="init"
 		class="ca.uwo.owl.quartz.jobs.CheckQuartzJobs">
-		<property name="triggerEventManager">
-			<ref bean="org.sakaiproject.api.app.scheduler.events.TriggerEventManager" />
-		</property>
-		<property name="emailTemplateService">
-			<ref bean="org.sakaiproject.emailtemplateservice.service.EmailTemplateService" />
-		</property>
-                <property name="emailService">
-			<ref bean="org.sakaiproject.email.api.EmailService" />
-		</property>
-		<property name="developerHelperService">
-			<ref bean="org.sakaiproject.entitybroker.DeveloperHelperService" />
-		</property>
+		
+		<property name="triggerEventManager" ref="org.sakaiproject.api.app.scheduler.events.TriggerEventManager" />
+		<property name="emailTemplateService" ref="org.sakaiproject.emailtemplateservice.service.EmailTemplateService" />
+        <property name="emailService" ref="org.sakaiproject.email.api.EmailService" />
+		<property name="developerHelperService" ref="org.sakaiproject.entitybroker.DeveloperHelperService" />
 	</bean>
 
 	<bean id = "org.sakaiproject.api.app.scheduler.JobBeanWrapper.checkQuartzJobs"
