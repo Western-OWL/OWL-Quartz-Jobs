@@ -37,6 +37,16 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 		</dependency>
+                <dependency>
+                    <groupId>jdom</groupId>
+                    <artifactId>jdom</artifactId>
+                    <version>1.0</version>
+                </dependency>
+                <dependency>
+                        <groupId>javax.mail</groupId>
+                        <artifactId>mail</artifactId>
+                        <version>1.4.5</version>
+                </dependency>
     	
 		<!-- Sakai dependencies -->
         <dependency>
@@ -69,4 +79,16 @@
 			<artifactId>entitybroker-api</artifactId>
 		</dependency>
 	</dependencies>
+        
+        <build>
+            <resources>
+            <resource>
+                <directory>${basedir}/src/bundle</directory>
+                <includes>
+                        <include>**/*.xml</include>
+                </includes>
+            </resource>
+            </resources>
+        </build>
+        
 </project>

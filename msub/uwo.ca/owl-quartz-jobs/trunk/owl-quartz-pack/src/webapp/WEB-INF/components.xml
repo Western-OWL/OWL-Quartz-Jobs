@@ -52,6 +52,9 @@
 		<property name="emailTemplateService">
 			<ref bean="org.sakaiproject.emailtemplateservice.service.EmailTemplateService" />
 		</property>
+                <property name="emailService">
+			<ref bean="org.sakaiproject.email.api.EmailService" />
+		</property>
 		<property name="developerHelperService">
 			<ref bean="org.sakaiproject.entitybroker.DeveloperHelperService" />
 		</property>
