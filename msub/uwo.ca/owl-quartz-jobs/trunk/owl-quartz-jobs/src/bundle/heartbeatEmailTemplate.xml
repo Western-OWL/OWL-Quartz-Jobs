@@ -14,5 +14,8 @@
             2. Resolve any stalled jobs
             3. Adjust monitored job list and time thresholds in sakai.properties as needed
         </message>
+       <messagehtml></messagehtml>
+		<locale>en</locale>
+		<version>1</version>
     </emailTemplate>
 </emailTemplates>
