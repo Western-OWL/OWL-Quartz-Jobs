@@ -1,20 +1,18 @@
 <?xml version="1.0"?>
-
 <emailTemplates>
     <emailTemplate>
         <subject>Check Quartz Jobs: Heartbeat Alert</subject>
-        <message>
-            The following Quartz jobs did not register a heartbeat within their time threshold:
+        <message>The following Quartz jobs did not register a heartbeat within their time threshold:
             
-            $jobs
+         ${jobs}
             
-            How to respond:
+         How to respond:
             
-            1. Verify that there is no legitimate reason why the time threshold was exceeded (job was disabled, server was down, etc.)
-            2. Resolve any stalled jobs
-            3. Adjust monitored job list and time thresholds in sakai.properties as needed
+         1. Verify that there is no legitimate reason why the time threshold was exceeded (job was disabled, server was down, etc.)
+         2. Resolve any stalled jobs
+         3. Adjust monitored job list and time thresholds in sakai.properties as needed
         </message>
-       <messagehtml></messagehtml>
+        <messagehtml></messagehtml>
 		<locale>en</locale>
 		<version>1</version>
     </emailTemplate>
