@@ -60,7 +60,7 @@ public class CheckQuartzJobs implements Job
         private static final Map<String, Long> alertThresholdMap;
         static // initialize the alert threshold map
         {
-            alertThresholdMap = new HashMap<String, Long>();
+            alertThresholdMap = new HashMap<String, Long>(); // maps job name -> alert threshold (in hours)
             if (heartbeatJobListArray != null && heartbeatJobThresholdArray != null && heartbeatJobListArray.length == heartbeatJobThresholdArray.length)
             {
                 for (int i = 0; i < heartbeatJobListArray.length; ++i)
@@ -167,7 +167,7 @@ public class CheckQuartzJobs implements Job
 
             //get the all the relevant trigger events
             //earliest date we care about
-            long maxThresholdMillis = Collections.max(alertThresholdMap.values()).longValue() * 60 * 60 * 1000;
+            long maxThresholdMillis = Collections.max(alertThresholdMap.values()).longValue() * 60 * 60 * 1000; // hours -> milliseconds
             Date minDate = new Date(System.currentTimeMillis()-maxThresholdMillis);
             //latest date we care about
             Date maxDate = new Date (System.currentTimeMillis());
@@ -188,7 +188,7 @@ public class CheckQuartzJobs implements Job
                     //time elapsed since the job completed:
                     long millisPassed = System.currentTimeMillis()-date.getTime();
                     //time that millisPassed must be less than:
-                    Long threshold = alertThresholdMap.get(jobName);
+                    Long threshold = alertThresholdMap.get(jobName).longValue() * 60 * 60 * 1000;  // hours -> milliseconds
                     if (threshold != null)
                     {
                             if (millisPassed<threshold)
