@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <emailTemplates>
     <emailTemplate>
-        <subject>Check Quartz Jobs: Heartbeat Alert</subject>
+        <subject>${localSakaiName}: Check Quartz Jobs: Heartbeat Alert</subject>
         <message>The following Quartz jobs did not register a heartbeat within their time threshold:
             
          ${jobs}
