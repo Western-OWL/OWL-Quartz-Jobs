@@ -1,3 +1,5 @@
+2012.10.15:
+	- [OQJ-5] put the local sakai name in the subject for the heartbeat checker email
 2012.07.16:
 	- [OQJ-2] created the job, checks SIS CSV Data Loader, TII Review Queue, TII Content Review Reports, and TII Content Review Roster Sync
 2012.06.01:
