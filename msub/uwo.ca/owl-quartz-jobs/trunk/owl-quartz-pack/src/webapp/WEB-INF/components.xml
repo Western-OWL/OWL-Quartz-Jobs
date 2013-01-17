@@ -9,22 +9,22 @@
 			- the 'id' is arbitrary but must be the same for this bean definition AND the following one
 			- the 'class' is the fully qualified package name of your Java class
 			- you can inject any properties or services into your job in this bean.
-    -->
+	   -->
 	<bean id="checkSitesForCourseCoordinator" init-method="init"
 		class="ca.uwo.owl.quartz.jobs.CheckSitesForCourseCoordinator">
-      	
-      	<property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
-      	<property name="authzGroupService" ref="org.sakaiproject.authz.api.AuthzGroupService" />
-      	<property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
-      	<property name="courseManagementService" ref="org.sakaiproject.coursemanagement.api.CourseManagementService" />
+	     	
+		<property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
+		<property name="authzGroupService" ref="org.sakaiproject.authz.api.AuthzGroupService" />
+		<property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
+		<property name="courseManagementService" ref="org.sakaiproject.coursemanagement.api.CourseManagementService" />
 	</bean>
-
+	
 	<!-- This is the helper that will register the above bean with the ScheduleManager
-   	Things to note:
-   		- id must end with the same bean id from above
-   		- class must be the class of the SpringJobBeanWrapper, ie don't change it.
-   		- the beanId property must match the bean id from above
-   		- the jobName property is the text that will be rendered in the list of jobs in Sakai
+	  	Things to note:
+	  		- id must end with the same bean id from above
+	  		- class must be the class of the SpringJobBeanWrapper, ie don't change it.
+	  		- the beanId property must match the bean id from above
+	  		- the jobName property is the text that will be rendered in the list of jobs in Sakai
 	-->
 	<bean id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.checkSitesForCourseCoordinator"
 		class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper"
@@ -33,30 +33,31 @@
 		<property name="beanId">
 			<value>checkSitesForCourseCoordinator</value>
 		</property>
-      
+	     
 		<property name="jobName">
 			<value>Check all sites for Course Coordinator/Instructor</value>
 		</property>
 		
-      	<property name="schedulerManager">
+	     	<property name="schedulerManager">
 			<ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
 		</property>
 		
-   </bean>
+	</bean>
 
 	<bean id="checkQuartzJobs" init-method="init"
 		class="ca.uwo.owl.quartz.jobs.CheckQuartzJobs">
 		
 		<property name="triggerEventManager" ref="org.sakaiproject.api.app.scheduler.events.TriggerEventManager" />
 		<property name="emailTemplateService" ref="org.sakaiproject.emailtemplateservice.service.EmailTemplateService" />
-        <property name="emailService" ref="org.sakaiproject.email.api.EmailService" />
+		<property name="emailService" ref="org.sakaiproject.email.api.EmailService" />
 		<property name="developerHelperService" ref="org.sakaiproject.entitybroker.DeveloperHelperService" />
+		<property name="securityService" ref="org.sakaiproject.authz.api.SecurityService" />
 	</bean>
-
+	
 	<bean id = "org.sakaiproject.api.app.scheduler.JobBeanWrapper.checkQuartzJobs"
 		class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper"
 		singleton="true" init-method="init">
-
+	
 		<property name="beanId">
 			<value>checkQuartzJobs</value>
 		</property>
@@ -64,7 +65,7 @@
 		<property name="jobName">
 			<value>Check that other quartz jobs have not been missed</value>
 		</property>
-
+	
 		<property name="schedulerManager">
 			<ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
 		</property>
