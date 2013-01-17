@@ -11,13 +11,13 @@
     </organization>
     <inceptionYear>2012</inceptionYear>
     
-    <version>1.0</version>
+    <version>1.2</version>
     <packaging>pom</packaging>
 
     <parent>
     	<artifactId>base</artifactId>
     	<groupId>org.sakaiproject</groupId>
-    	<version>2.8-SNAPSHOT</version>
+    	<version>2.9-SNAPSHOT</version>
     	<relativePath>../pom.xml</relativePath>
   	</parent>
 
@@ -32,12 +32,12 @@
             <dependency>
                 <groupId>ca.uwo.owl.quartz</groupId>
             	<artifactId>owl-quartz-jobs</artifactId>
-                <version>1.0</version>
+                <version>1.2</version>
             </dependency>
 			<dependency>
 				<groupId>org.projectlombok</groupId>
 				<artifactId>lombok</artifactId>
-				<version>0.9.3</version>
+				<version>0.11.6</version>
 				<scope>provided</scope>
 			</dependency>
           </dependencies>
