@@ -1,3 +1,5 @@
+2013.05.23:
+	- [OQJ-9] update tool version numbers (v1.3), remove log4j dependency
 2013.03.28:
 	- [OQJ-8] removed the <htmlmessage> section from the email template
 2013.01.17:
