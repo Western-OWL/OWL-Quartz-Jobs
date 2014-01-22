@@ -1,3 +1,14 @@
+2013.10.25:
+	- [OWL-885] SyncAnonGradingIDs is more resilient about empty lines
+2013.10.17:
+	- [OWL-885] Added a check for duplicates - if they exist, they are emailed/logged, and then removed; processing continues
+2013.10.16:
+	- [OWL-885] Completed implementation of SyncAnonGradingIDs job - database updates are now implemented
+2013.10.15:
+	- [OWL-885] created the SyncAnonGradingIDs job. Currently it can read the csv and send email if there's an error. Database updates have yet to be implemented
+		- Created EmailTemplateHelper to cut down on the number of lines required for email related tasks in SyncAnonGradingIDs and future quartz jobs
+2013.10.07:
+	- [OWL-897] branched from OWL trunk for anonymous grading work
 2013.05.23:
 	- [OQJ-9] update tool version numbers (v1.3), replace log4j dependency with slf4j
 2013.03.28:

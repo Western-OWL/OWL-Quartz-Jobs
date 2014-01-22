@@ -1,0 +1,78 @@
+// bbailla2
+// Represents a row in the csv - keeps track of a SectionEID, a userEID and a grading ID
+// 2013.10.09, bbailla2, Created
+
+package ca.uwo.owl.quartz.jobs.anongrading;
+
+import java.lang.StringBuilder;
+
+import org.apache.log4j.Logger;
+
+/**
+ * This class represents a row in the anonymous grading data CSV file.
+ *
+ * Each student has a grading ID, and each term the grading ID changes.
+ * This means that sections from previous terms can have old grading IDs.
+ * The data in the csv maps pairs of (section, user) to grading Ids.
+ * @author bbailla2
+ *
+ */
+public class AnonGradingCSVRow
+{
+	private static final Logger log = Logger.getLogger(AnonGradingCSVRow.class);
+	
+	private String sectionEid;
+	private String userEid;
+	private Integer gradingID;
+
+	/**
+	 * Creates an AnonGradingCSVRow with the specified sectionEid, userEid, and gradingID
+	 * @param sectionEid the eid of a section
+	 * @param userEid the eid of a student
+	 * @param gradingID the grading id of the student for the specified section
+	 */
+	public AnonGradingCSVRow(String sectionEid, String userEid, Integer gradingID)
+	{
+		this.sectionEid = sectionEid;
+		this.userEid = userEid;
+		this.gradingID = gradingID;
+	}
+
+	public String getSectionEid()
+	{
+		return sectionEid;
+	}
+
+	public void setSectionEid(String sectionEid)
+	{
+		this.sectionEid = sectionEid;
+	}
+
+	public String getUserEid()
+	{
+		return userEid;
+	}
+
+	public void setUserEid(String userEid)
+	{
+		this.userEid = userEid;
+	}
+
+	public Integer getGradingID()
+	{
+		return gradingID;
+	}
+
+	public void setGradingID(Integer gradingID)
+	{
+		this.gradingID = gradingID;
+	}
+
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder("(");
+		sb.append(sectionEid).append(", ").append(userEid).append(", ").append(gradingID).append(")");
+		return sb.toString();
+	}
+
+} // end class
