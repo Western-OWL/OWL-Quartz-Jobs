@@ -1,0 +1,23 @@
+2013.10.25:
+	- [OWL-885] SyncAnonGradingIDs is more resilient about empty lines
+2013.10.17:
+	- [OWL-885] Added a check for duplicates - if they exist, they are emailed/logged, and then removed; processing continues
+2013.10.16:
+	- [OWL-885] Completed implementation of SyncAnonGradingIDs job - database updates are now implemented
+2013.10.15:
+	- [OWL-885] created the SyncAnonGradingIDs job. Currently it can read the csv and send email if there's an error. Database updates have yet to be implemented
+		- Created EmailTemplateHelper to cut down on the number of lines required for email related tasks in SyncAnonGradingIDs and future quartz jobs
+2013.10.07:
+	- [OWL-897] branched from OWL trunk for anonymous grading work
+2013.05.23:
+	- [OQJ-9] update tool version numbers (v1.3), replace log4j dependency with slf4j
+2013.03.28:
+	- [OQJ-8] removed the <htmlmessage> section from the email template
+2013.01.17:
+	- [OQJ-6] port to 2.9; incremented to v1.2; changed lombok to v0.11.6; refactored email code to use SecurityAdvisor
+2012.10.15:
+	- [OQJ-5] put the local sakai name in the subject for the heartbeat checker email
+2012.07.16:
+	- [OQJ-2] created the job, checks SIS CSV Data Loader, TII Review Queue, TII Content Review Reports, and TII Content Review Roster Sync
+2012.06.01:
+	- [OQJ-1] created the job, initial import into SVN

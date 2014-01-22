@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<emailTemplates>
+    <emailTemplate>
+        <subject>${localSakaiName}: Anonymous Grading Synchronization Error</subject>
+        <message>The following error occurred while synchronizing the database with the latest CSV: 
+${error}
+        </message>
+		<locale>en</locale>
+		<version>1</version>
+    </emailTemplate>
+</emailTemplates>

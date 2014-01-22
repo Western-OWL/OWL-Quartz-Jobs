@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<emailTemplates>
+    <emailTemplate>
+        <subject>${localSakaiName}: Anonymous Grading - Duplicate rows detected</subject>
+        <message>There were duplicate rows in the latest CSV:
+${duplicates}
+
+The job will ignore these and continue processing
+        </message>
+		<locale>en</locale>
+		<version>1</version>
+    </emailTemplate>
+</emailTemplates>
