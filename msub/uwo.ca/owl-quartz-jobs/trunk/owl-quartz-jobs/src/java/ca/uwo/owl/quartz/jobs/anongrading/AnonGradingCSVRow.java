@@ -75,4 +75,26 @@ public class AnonGradingCSVRow
 		return sb.toString();
 	}
 
+	public boolean equals(Object obj)
+	{
+		if (obj instanceof AnonGradingCSVRow)
+		{
+			AnonGradingCSVRow other = (AnonGradingCSVRow) obj;
+			return nullAgnosticEquals(sectionEid, other.getSectionEid()) && nullAgnosticEquals(userEid, other.getUserEid()) && nullAgnosticEquals(gradingID, other.getGradingID());
+		}
+		return false;
+	}
+
+	/**
+	 * Compares two objects with .equals(), but saves you the null check
+	 */
+	private boolean nullAgnosticEquals(Object obj1, Object obj2)
+	{
+		if (obj1 == null)
+		{
+			return obj2 == null;
+		}
+		return obj1.equals(obj2);
+	}
+
 } // end class
