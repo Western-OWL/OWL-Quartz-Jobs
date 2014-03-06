@@ -1,3 +1,5 @@
+2014-03.06:
+	- [OWL-885] SyncAnonGradingIDs now assumes the first row is a header and ignores it
 2013.10.25:
 	- [OWL-885] SyncAnonGradingIDs is more resilient about empty lines
 2013.10.17:

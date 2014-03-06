@@ -70,6 +70,7 @@ public class AnonGradingCSVHandler
 			{
 				br = new BufferedReader(new FileReader(csvFile));
 				csvr = new CSVReader(br);
+				csvr.readNext();	// skip past the header
 				String[] line = csvr.readNext();
 				int lineNumber = 1;
 				while (line != null)
