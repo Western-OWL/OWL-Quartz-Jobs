@@ -30,15 +30,64 @@ public class AnonGradingCSVHandler
 {
 	private static final Logger log = Logger.getLogger(AnonGradingCSVHandler.class);
 
-	//sakai property specifying the absolute directory of the anonymous grading csv
-	private static final String PROP_CSV_LOCATION = "anongrading.csv.location";
+	//sakai property specifying the absolute directory of the anonymous grading csv's pickup location
+	private static final String PROP_CSV_LOCATION = "anongrading.csv.location";	
+	//sakai property specifying the file name (excluding the path) of the csv file
+	private static final String PROP_CSV_FILENAME = "anongrading.csv.filename";
+	//sakai property specifying the directory to move the csv into before processing
+	private static final String PROP_PROCESSING_LOCATION = "anongrading.processing.location";
+	//sakai property specifying the directory to archive the csv after processing
+	private static final String PROP_ARCHIVE_LOCATION = "anongrading.archive.location";
 	
 	//the default csv location relative to the sakai home path
-	private static final String DEFAULT_CSV_LOCATION = "anon-grades" + File.separator + "anon-grades.csv";
+	private static final String DEFAULT_CSV_LOCATION = "anon-grades";
+	//the default csv file name
+	private static final String DEFAULT_CSV_FILENAME = "anon-grades.csv";
+
+	//prefix for the batch folders
+	private static final String BATCH_PREFIX = "anon-grades-batch-";
+	//suffixes for the batch folders
+	private static final String FINISHED_SUFFIX = "-finished";
+	private static final String FAILED_SUFFIX = "-failed";
+
+	//The actual directory of the processing files that this thread is currently using (subdirectory of the anongrading.processing.location)
+	private String threadProcessingLocation = "";
 
 	public ServerConfigurationService getServerConfigurationService()
 	{
 		return (ServerConfigurationService) ComponentManager.get("org.sakaiproject.component.api.ServerConfigurationService");
+	}
+
+	/**
+	 * Gets the anonymous grading CSV's pickup location
+	 */
+	private String getCSVLocation()
+	{
+		return getServerConfigurationService().getString(PROP_CSV_LOCATION, getDefaultCSVLocation());
+	}
+
+	/**
+	 * Gets the anonymous grading CSV's file name (excluding the path)
+	 */
+	private String getCSVFileName()
+	{
+		return getServerConfigurationService().getString(PROP_CSV_FILENAME, DEFAULT_CSV_FILENAME);
+	}
+
+	/**
+	 * Gets the location to move the anonymous grading CSV to be processed
+	 */
+	private String getProcessingLocation()
+	{
+		return getServerConfigurationService().getString(PROP_PROCESSING_LOCATION, getCSVLocation());
+	}
+
+	/**
+	 * Gets the location to archive the CSV after processing
+	 */
+	private String getArchiveLocation()
+	{
+		return getServerConfigurationService().getString(PROP_ARCHIVE_LOCATION, getCSVLocation());
 	}
 	
 	/**
@@ -50,10 +99,8 @@ public class AnonGradingCSVHandler
 	{
 		List<AnonGradingCSVRow> csvRows = new ArrayList<AnonGradingCSVRow>();
 
-		//Get the location of the csv file. Use the sakai property if it exists, otherwise use the default location
-		ServerConfigurationService serverConfigurationService = getServerConfigurationService();
-		String csvLocation = serverConfigurationService.getString(PROP_CSV_LOCATION, getDefaultCSVLocation());
-
+		//Get the location of the csv file. Assume it has been placed in the processing directory
+		String csvLocation = threadProcessingLocation + File.separator + getCSVFileName();
 		//Note: File objects aren't opened or closed, just useful to check the existence
 		File csvFile = new File(csvLocation);
 		if (!csvFile.exists())
@@ -134,7 +181,93 @@ public class AnonGradingCSVHandler
 		return csvRows;
 	}
 
-	//OWLTODO: Implement a method to archive the file in its own folder after
+
+	/**
+	 * Moves files from the CSV pickup location to the processing directory
+	 */
+	public void moveToProcessingDir() throws IOException
+	{
+		//Create the processing batch folder within the processing location. The batch folder will be marked with the current time, and threadProcessingLocation will keep track of this
+		threadProcessingLocation = getProcessingLocation() + File.separator + BATCH_PREFIX + System.currentTimeMillis();
+		File processingPath = new File(threadProcessingLocation);
+		processingPath.mkdirs();
+
+		//Move the files from the pickup location to the processing batch folder
+		moveFiles(getCSVLocation(), threadProcessingLocation);
+	}
+
+
+	/**
+	 * Archives the CSV file from the processing directory into the archiving directory
+	 * @param success archive's title will include the word 'finished' if true; 'failed' if false
+	 */
+	public void archiveCSV(boolean success) throws IOException
+	{
+		//Get the processing directory
+		String processingLocation = threadProcessingLocation;
+		File processingDir = new File (processingLocation);
+
+		//Ensure the archiving location exists
+		String archiveLocation = getArchiveLocation();
+		File archiveParent = new File(archiveLocation);
+		if (!archiveParent.exists())
+		{
+			archiveParent.mkdirs();
+		}
+
+		//Create the archive subfolder (in memory, not physically yet)
+		String suffix = success ? FINISHED_SUFFIX : FAILED_SUFFIX;
+		String archiveDir = archiveLocation + File.separator + BATCH_PREFIX + System.currentTimeMillis() + suffix; 
+		File archivePath = new File(archiveDir);
+		//Move the precessing directory itself to the archive
+		processingDir.renameTo(archivePath);
+	}
+
+
+	/**
+	 * From Sakora's CsvSyncServiceImpl:
+	 * Move files in one directory into another. Both dirs
+	 * must already exist. Bails with an IOException on the first 
+	 * failed file move. Performs no cleanup as the result of
+	 * such failure. Skips directory.
+	 *
+	 * @param from
+	 * @param to
+	 * @throws IOException
+	 */
+	private void moveFiles(String from, String to) throws IOException
+	{
+		File fromDir = new File(from);
+		if (!fromDir.exists())
+		{
+			throw new IllegalArgumentException("Source directory does not exist [" + from + "]");
+		}
+		if (!fromDir.isDirectory())
+		{
+			throw new IllegalArgumentException("Source directory is not a directory [" + fromDir + "]");
+		}
+		File toDir = new File(to);
+		if (!toDir.exists())
+		{
+			throw new IllegalArgumentException("Target directory does not exist [" + toDir + "]");
+		}
+		if (!toDir.isDirectory())
+		{
+			throw new IllegalArgumentException("Target directory is not a directory [" + toDir + "]");
+		}
+		for (File file : fromDir.listFiles())
+		{
+			if (file.isDirectory())
+			{
+				continue;
+			}
+			File newFile = new File(toDir, file.getName());
+			if (!file.renameTo(newFile))
+			{
+				throw new IOException("Unable to move [" + file + "] to [" + newFile + "]");
+			}
+		}
+	}
 
 	/**
 	 * Default location is tomcatDirectory/sakai/anon-grading/anon-grading.csv
