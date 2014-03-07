@@ -38,14 +38,18 @@ public class SyncAnonGradingIDs implements Job
 {
 	private static final Logger log = Logger.getLogger(SyncAnonGradingIDs.class);
 
+	// Email templates
 	private static final String ERROR_EMAIL_TEMPLATE_KEY = "owlquartzjobs.anongrading.sync.error";
 	private static final String ERROR_EMAIL_TEMPLATE_XML_FILE = "anonGradingErrorEmailTemplate.xml";
 	private static final String DUPLICATE_EMAIL_TEMPLATE_KEY = "owlquartzjobs.anongrading.sync.duplicates";
 	private static final String DUPLICATE_EMAIL_TEMPLATE_XML_FILE = "anonGradingDuplicatesEmailTemplate.xml";
 
+	//Sakai property indicating who will recive notifications from this job
 	private static final String PROP_NOTIFICATION_LIST = "owlquartzjobs.anongrading.sync.emailNotificationList";
 
+	//from address
 	private String EMAIL_NO_REPLY_ADDRESS = "no-reply@uwo.ca";
+	//email recipients
 	private List<InternetAddress> recipients = new ArrayList<InternetAddress>();
 
 	private GradebookService gradebookService;
@@ -88,12 +92,21 @@ public class SyncAnonGradingIDs implements Job
 	{
 		log.info("execute()");
 	
-		//parse the csv
 		AnonGradingCSVHandler csvHandler = new AnonGradingCSVHandler();
-		List<AnonGradingCSVRow> csvRows = null;
+
+		// true when the anon-grades.csv has moved into the batch folder
+		boolean movedToProcessingDir = false;
+		// true when archiving the batch processing folder has been attempted
+		boolean archiveAttempted = false;
 		try
 		{
-			csvRows = csvHandler.getAnonGradingCSVRows();
+			//move the files to the processing directory (use the csvHandler)
+			log.info("Moving csv to processing directory");
+			csvHandler.moveToProcessingDir();
+			movedToProcessingDir = true;
+
+			//parse the csv
+			List<AnonGradingCSVRow> csvRows = csvHandler.getAnonGradingCSVRows();
 
 			List<AnonGradingCSVRow> duplicates = detectDuplicates(csvRows);
 
@@ -180,12 +193,37 @@ public class SyncAnonGradingIDs implements Job
 
 			log.info("inserting");
 			gradebookService.createAnonGradingIds(toInsert);
+
+			// archive the file (use the csvHandler)
+			log.info("archiving");
+			archiveAttempted = true;
+			csvHandler.archiveCSV(true);
+
+
 			log.info("success");
 		}
 		catch(Exception exception)
 		{
 			log.error("Exception was thrown: " + exception.getMessage());
 			exception.printStackTrace();
+
+			// Archive the file
+			// Do this only if the file is in the processing directory and we haven't already attempted to archive
+			if (movedToProcessingDir && !archiveAttempted)
+			{
+				log.info("attempting to archive...");
+				try
+				{
+					// pass in false as there was an error
+					csvHandler.archiveCSV(false);
+					log.info("archiving successful");
+				}
+				catch (Exception archiveException)
+				{
+					log.error("Archiving failed, exception is: " + archiveException.getMessage());
+					archiveException.printStackTrace();
+				}
+			}
 
 			sendErrorEmail(exception);
 		}
@@ -304,6 +342,7 @@ public class SyncAnonGradingIDs implements Job
 	{
 		Map<String, String> replacementValues = new HashMap<String, String>();
 		replacementValues.put("error", exception.getMessage());
+		replacementValues.put("node", ServerConfigurationService.getServerId());
 		
 		try
 		{

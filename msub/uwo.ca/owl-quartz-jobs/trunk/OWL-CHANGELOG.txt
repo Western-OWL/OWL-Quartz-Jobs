@@ -1,3 +1,5 @@
+2014.03.07:
+	- [OWL-885] SyncAnonGradingIDs now puts files into a batch-processing directory, and then archives the files when the job has completed similarly to sakora
 2014-03.06:
 	- [OWL-885] SyncAnonGradingIDs now assumes the first row is a header and ignores it
 2013.10.25:

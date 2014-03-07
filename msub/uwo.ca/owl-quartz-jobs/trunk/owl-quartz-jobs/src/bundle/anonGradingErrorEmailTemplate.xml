@@ -4,6 +4,7 @@
         <subject>${localSakaiName}: Anonymous Grading Synchronization Error</subject>
         <message>The following error occurred while synchronizing the database with the latest CSV: 
 ${error}
+See logs for more info (node is ${node})
         </message>
 		<locale>en</locale>
 		<version>1</version>
