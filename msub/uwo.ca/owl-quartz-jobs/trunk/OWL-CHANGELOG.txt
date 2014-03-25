@@ -1,3 +1,5 @@
+2014.03.25:
+	- [OWL-885] SyncAnonGradingIDs now deletes rows from the database if they are not present in the CSV
 2014.03.07:
 	- [OWL-885] SyncAnonGradingIDs now puts files into a batch-processing directory, and then archives the files when the job has completed similarly to sakora
 2014-03.06:

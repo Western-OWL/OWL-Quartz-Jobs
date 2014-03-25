@@ -47,6 +47,9 @@ public class SyncAnonGradingIDs implements Job
 	//Sakai property indicating who will recive notifications from this job
 	private static final String PROP_NOTIFICATION_LIST = "owlquartzjobs.anongrading.sync.emailNotificationList";
 
+	//Sakai property indicating whether or not to delete rows that are not found in the CSV (default is true)
+	private static final String PROP_DO_DELETIONS = "owlquartzjobs.anongrading.sync.doDeletions";
+
 	//from address
 	private String EMAIL_NO_REPLY_ADDRESS = "no-reply@uwo.ca";
 	//email recipients
@@ -92,6 +95,8 @@ public class SyncAnonGradingIDs implements Job
 	{
 		log.info("execute()");
 	
+		long startTime = System.currentTimeMillis();
+
 		AnonGradingCSVHandler csvHandler = new AnonGradingCSVHandler();
 
 		// true when the anon-grades.csv has moved into the batch folder
@@ -134,9 +139,12 @@ public class SyncAnonGradingIDs implements Job
 			//assemble a set of gradingIds from the csv
 			Set<String> csvSectionEIDs = getSectionEIDsFromCSVRows(csvRows);
 
-			List<OwlAnonGradingID> owlAnonGradingIDs = gradebookService.getAnonGradingIDsBySectionEIDs(csvSectionEIDs);
+			List<OwlAnonGradingID> owlAnonGradingIDs = gradebookService.getAnonGradingIds();
 			// convert database rows to map<sectionEid, map<userEid, OwlAnonGradingID>>
 			Map<String, Map<String, OwlAnonGradingID>> dbSectionsToUsersToGrades = convertOwlAnonGradingIDsToMaps(owlAnonGradingIDs);
+
+			//Prepare a set of OwlAnonGradingIDs that need to be deleted. Start with the entire database table, and remove anything we find in the csv
+			Set<OwlAnonGradingID> toDelete = new HashSet<OwlAnonGradingID>(owlAnonGradingIDs);
 
 			//Prepare a set of OwlAnonGradingIDs that need to be updated. Start with nothing, and we'll populate them as we find discrepancies.
 			Set<OwlAnonGradingID> toUpdate = new HashSet<OwlAnonGradingID>();
@@ -162,7 +170,10 @@ public class SyncAnonGradingIDs implements Job
 					OwlAnonGradingID dbGradingID = dbUserToGradingIDs.get(csvUserEid);
 					if (dbGradingID != null)
 					{
-						//such a row exists in the db, so we don't need to insert it
+						// the row exists in the csv, so we don't need to delete it
+						toDelete.remove(dbGradingID);
+
+						// the row exists in the db, so we don't need to insert it
 						newRows.remove(csvRow);
 
 						//if the gradingID doesn't match, it needs to be updated in the db
@@ -176,8 +187,16 @@ public class SyncAnonGradingIDs implements Job
 				}
 			}
 
+			Boolean doDelete = ServerConfigurationService.getBoolean(PROP_DO_DELETIONS, Boolean.TRUE);
+			int numDeleted = 0;
+			if (doDelete)
+			{
+				log.info("deleting");
+				numDeleted = gradebookService.deleteAnonGradingIds(toDelete);
+			}
+
 			log.info("updating");
-			gradebookService.updateAnonGradingIds(toUpdate);
+			int numUpdated = gradebookService.updateAnonGradingIds(toUpdate);
 
 			Set<OwlAnonGradingID> toInsert = new HashSet<OwlAnonGradingID>();
 			// All the csvRows with unique (sectionEid, userEid) pairs need to be updated
@@ -192,15 +211,16 @@ public class SyncAnonGradingIDs implements Job
 			}
 
 			log.info("inserting");
-			gradebookService.createAnonGradingIds(toInsert);
+			int numInserted = gradebookService.createAnonGradingIds(toInsert);
 
 			// archive the file (use the csvHandler)
 			log.info("archiving");
 			archiveAttempted = true;
 			csvHandler.archiveCSV(true);
 
+			long timeElapsed = System.currentTimeMillis() - startTime;
 
-			log.info("success");
+			log.info("Success. Deleted " + numDeleted + " entries, updated " + numUpdated + " entries, inserted " + numInserted + " entries. Took " + timeElapsed + " milliseconds.");
 		}
 		catch(Exception exception)
 		{
