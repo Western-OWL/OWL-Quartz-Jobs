@@ -1,3 +1,5 @@
+2014.06.24:
+	- [OQJ-15] add active academic session restriction to site role enforcer
 2014.03.25:
 	- [OWL-885] SyncAnonGradingIDs now deletes rows from the database if they are not present in the CSV
 2014.03.07:
