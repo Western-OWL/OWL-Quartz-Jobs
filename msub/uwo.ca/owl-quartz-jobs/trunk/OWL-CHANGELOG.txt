@@ -1,3 +1,5 @@
+2014.07.14:
+	- [OQJ-20] Sync anon grading IDs job no longer accepts grading IDs that are out of range
 2014.06.24:
 	- [OQJ-15] add active academic session restriction to site role enforcer
 2014.03.25:

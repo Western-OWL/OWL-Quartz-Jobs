@@ -38,6 +38,12 @@ public class AnonGradingCSVHandler
 	private static final String PROP_PROCESSING_LOCATION = "anongrading.processing.location";
 	//sakai property specifying the directory to archive the csv after processing
 	private static final String PROP_ARCHIVE_LOCATION = "anongrading.archive.location";
+	//sakai property specifying the minimum grading ID (job will bail if a grading ID falls below the minimum)
+	private static final String PROP_MIN_GRADING_ID = "anongrading.minimum.gradingId";
+	private static final int MIN_GRADING_ID_DEFAULT = 1000;
+	//sakai property specifying the maximum grading ID (job will bail if a grading ID exceeds the maximum)
+	private static final String PROP_MAX_GRADING_ID = "anongrading.maximum.gradingId";
+	private static final int MAX_GRADING_ID_DEFAULT = 9999;
 	
 	//the default csv location relative to the sakai home path
 	private static final String DEFAULT_CSV_LOCATION = "anon-grades";
@@ -89,6 +95,22 @@ public class AnonGradingCSVHandler
 	{
 		return getServerConfigurationService().getString(PROP_ARCHIVE_LOCATION, getCSVLocation());
 	}
+
+	/**
+	 * Gets the minimum grading ID; It is assumed that the python script has validated the csv, so if any grading ID falls below this number, then there is a serious problem and we will reject the whole csv
+	 */
+	private int getMinimumGradingID()
+	{
+		return getServerConfigurationService().getInt(PROP_MIN_GRADING_ID, MIN_GRADING_ID_DEFAULT);
+	}
+
+	/**
+	 * Gets the maximum grading ID: It is assumed that the python script has validated the csv, so if any grading ID is above this number, then there is a serious problem and we will reject the whole csv
+	 */
+	private int getMaximumGradingID()
+	{
+		return getServerConfigurationService().getInt(PROP_MAX_GRADING_ID, MAX_GRADING_ID_DEFAULT);
+	}
 	
 	/**
 	 * Parses the anon-grading csv file and stores the result in a List of AnonGradingCSVRows.
@@ -110,6 +132,10 @@ public class AnonGradingCSVHandler
 		}
 		else
 		{
+			// Get the minimum and maximum grading IDs for validation to do later
+			int minGradingID = getMinimumGradingID();
+			int maxGradingID = getMaximumGradingID();
+
 			//this is somewhat based on sakora's CsvHandlerBase.setup(CsvSyncContext context) method
 			BufferedReader br = null;
 			CSVReader csvr = null;
@@ -140,6 +166,11 @@ public class AnonGradingCSVHandler
 					try
 					{
 						gradingId = Integer.parseInt(line[2]);
+						if (gradingId < minGradingID || gradingId > maxGradingID)
+						{
+							log.error("Grading ID out of range");
+							throw new AnonGradingCSVParseException("Grading ID is not between the minimum (" + minGradingID + ") and the maximum (" + maxGradingID + "): " + line[2] + "; userEid: " + userEid + "; sectionEid: " + sectionEid);
+						}
 					}
 					catch(NumberFormatException e)
 					{
