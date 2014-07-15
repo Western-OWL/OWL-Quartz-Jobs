@@ -44,6 +44,9 @@ public class AnonGradingCSVHandler
 	//sakai property specifying the maximum grading ID (job will bail if a grading ID exceeds the maximum)
 	private static final String PROP_MAX_GRADING_ID = "anongrading.maximum.gradingId";
 	private static final int MAX_GRADING_ID_DEFAULT = 9999;
+    // sakai property specifiy the minimum number of rows that must appear in the file for this job to process it
+    private static final String PROP_MIN_ROW_COUNT = "anongrading.minimum.rowCount";
+    private static final int MIN_ROW_COUNT_DEFAULT = 10;
 	
 	//the default csv location relative to the sakai home path
 	private static final String DEFAULT_CSV_LOCATION = "anon-grades";
@@ -111,6 +114,14 @@ public class AnonGradingCSVHandler
 	{
 		return getServerConfigurationService().getInt(PROP_MAX_GRADING_ID, MAX_GRADING_ID_DEFAULT);
 	}
+    
+    /**
+     * Returns the minimum number of rows that must appear in the csv in order for it to be considered valid for processing
+     */
+    private int getMinRowThreshold()
+    {
+        return getServerConfigurationService().getInt(PROP_MIN_ROW_COUNT, MIN_ROW_COUNT_DEFAULT);
+    }
 	
 	/**
 	 * Parses the anon-grading csv file and stores the result in a List of AnonGradingCSVRows.
@@ -135,6 +146,8 @@ public class AnonGradingCSVHandler
 			// Get the minimum and maximum grading IDs for validation to do later
 			int minGradingID = getMinimumGradingID();
 			int maxGradingID = getMaximumGradingID();
+            
+            int threshold = getMinRowThreshold(); // OQJ-13  --plukasew
 
 			//this is somewhat based on sakora's CsvHandlerBase.setup(CsvSyncContext context) method
 			BufferedReader br = null;
@@ -182,6 +195,13 @@ public class AnonGradingCSVHandler
 					line = csvr.readNext();
 					++lineNumber;
 				}
+                
+                // OQJ-13  --plukasew
+                if (lineNumber < threshold)
+                {
+                    log.error("Read only " + lineNumber + " lines in CSV, threshold is " + threshold);
+                    throw new AnonGradingCSVParseException("Minimum row threshold not met");
+                }
 			}
 			catch (IOException e)
 			{
