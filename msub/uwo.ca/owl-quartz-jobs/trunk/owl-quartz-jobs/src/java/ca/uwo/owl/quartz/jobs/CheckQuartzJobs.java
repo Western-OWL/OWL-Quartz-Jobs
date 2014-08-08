@@ -30,7 +30,6 @@ import org.sakaiproject.api.app.scheduler.events.TriggerEvent;
 import org.sakaiproject.api.app.scheduler.events.TriggerEventManager;
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
-import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.email.api.EmailService;
 import org.sakaiproject.emailtemplateservice.model.EmailTemplate;
@@ -133,6 +132,7 @@ public class CheckQuartzJobs implements Job
         loadTemplate(EMAIL_HEARTBEAT_TEMPLATE_XML_FILE, EMAIL_HEARTBEAT_TEMPLATE);
 	}
 	
+        @Override
 	public void execute( JobExecutionContext jobExecutionContext ) throws JobExecutionException
 	{
         // check prerequisites and abort early if needed
@@ -174,7 +174,7 @@ public class CheckQuartzJobs implements Job
 
         //get the all the relevant trigger events
         //earliest date we care about
-        long maxThresholdMillis = Collections.max(alertThresholdMap.values()).longValue() * 60 * 60 * 1000; // hours -> milliseconds
+        long maxThresholdMillis = Collections.max(alertThresholdMap.values()) * 60 * 60 * 1000; // hours -> milliseconds
         Date minDate = new Date(System.currentTimeMillis()-maxThresholdMillis);
         //latest date we care about
         Date maxDate = new Date (System.currentTimeMillis());
@@ -195,7 +195,7 @@ public class CheckQuartzJobs implements Job
             //time elapsed since the job completed:
             long millisPassed = System.currentTimeMillis()-date.getTime();
             //time that millisPassed must be less than:
-            Long threshold = alertThresholdMap.get(jobName).longValue() * 60 * 60 * 1000;  // hours -> milliseconds
+            Long threshold = alertThresholdMap.get(jobName) * 60 * 60 * 1000;  // hours -> milliseconds
             if (threshold != null)
             {
                 if (millisPassed<threshold)
@@ -262,6 +262,7 @@ public class CheckQuartzJobs implements Job
 		// Create the SecurityAdvisor (elevated permissions needed to use EmailTemplateService)
 		SecurityAdvisor yesMan = new SecurityAdvisor()
 		{
+                        @Override
 			public SecurityAdvice isAllowed( String userID, String function, String reference )
 			{
 				return SecurityAdvice.ALLOWED;
@@ -327,13 +328,12 @@ public class CheckQuartzJobs implements Job
 		}
 		
 		// Check if there was a version supplied...
-		Integer iVersion = Integer.valueOf( 1 );
+		Integer iVersion = 1;
 		try { iVersion = Integer.valueOf( strVersion ); }
-		catch( NumberFormatException e ) { log.error( e.getMessage(), e ); iVersion = Integer.valueOf( 1 ); }
-		catch( NullPointerException e )  { log.error( e.getMessage(), e ); iVersion = Integer.valueOf( 1 ); }
+		catch( NumberFormatException e ) { log.error( e.getMessage(), e ); iVersion = 1; }
+		catch( NullPointerException e )  { log.error( e.getMessage(), e ); iVersion = 1; }
 		
 		// If the template already exists, don't do anything (just return)
-		EmailTemplateService emailTemplateService = (EmailTemplateService) ComponentManager.get( EmailTemplateService.class );
 		if( emailTemplateService.getEmailTemplate( templateKey, new Locale( locale ) ) != null )
 			return;
 		

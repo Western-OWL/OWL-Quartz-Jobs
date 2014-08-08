@@ -7,13 +7,10 @@ package ca.uwo.owl.quartz.jobs.anongrading;
 import au.com.bytecode.opencsv.CSVReader;
 
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -222,7 +219,7 @@ public class AnonGradingCSVHandler
 						br.close();
 					}
 				}
-				catch (Exception e)
+				catch (IOException e)
 				{
 					throw new AnonGradingCSVParseException("Error closing the CSVReader:\n" + e.getMessage(), e);
 				}
@@ -235,6 +232,7 @@ public class AnonGradingCSVHandler
 
 	/**
 	 * Moves files from the CSV pickup location to the processing directory
+         * @throws java.io.IOException
 	 */
 	public void moveToProcessingDir() throws IOException
 	{
@@ -251,6 +249,7 @@ public class AnonGradingCSVHandler
 	/**
 	 * Archives the CSV file from the processing directory into the archiving directory
 	 * @param success archive's title will include the word 'finished' if true; 'failed' if false
+         * @throws java.io.IOException
 	 */
 	public void archiveCSV(boolean success) throws IOException
 	{

@@ -67,6 +67,7 @@ public class EmailTemplateHelper
 		// Create the SecurityAdvisor (elevated permissions needed to use EmailTemplateService)
 		SecurityAdvisor yesMan = new SecurityAdvisor()
 		{
+                        @Override
 			public SecurityAdvice isAllowed( String userID, String function, String reference )
 			{
 				return SecurityAdvice.ALLOWED;
@@ -154,7 +155,7 @@ public class EmailTemplateHelper
 		}
 
 		// Check if there was a version supplied...
-		Integer iVersion = Integer.valueOf( 1 );
+		Integer iVersion = 1;
 		try 
 		{
 			iVersion = Integer.valueOf( strVersion );
@@ -162,12 +163,12 @@ public class EmailTemplateHelper
 		catch( NumberFormatException e ) 
 		{
 			log.error( e.getMessage(), e ); 
-			iVersion = Integer.valueOf( 1 );
+			iVersion = 1;
 		}
 		catch( NullPointerException e )
 		{
 			log.error( e.getMessage(), e );
-			iVersion = Integer.valueOf( 1 );
+			iVersion = 1;
 		}
 
 		// If the template already exists, don't do anything (just return)
