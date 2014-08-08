@@ -4,8 +4,6 @@
 
 package ca.uwo.owl.quartz.jobs.anongrading;
 
-import java.lang.StringBuilder;
-
 import org.apache.log4j.Logger;
 
 /**
@@ -68,6 +66,7 @@ public class AnonGradingCSVRow
 		this.gradingID = gradingID;
 	}
 
+        @Override
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder("(");
@@ -75,6 +74,7 @@ public class AnonGradingCSVRow
 		return sb.toString();
 	}
 
+        @Override
 	public boolean equals(Object obj)
 	{
 		if (obj instanceof AnonGradingCSVRow)
@@ -84,6 +84,16 @@ public class AnonGradingCSVRow
 		}
 		return false;
 	}
+
+        @Override
+        public int hashCode()
+        {
+            int hash = 3;
+            hash = 19 * hash + (this.sectionEid != null ? this.sectionEid.hashCode() : 0);
+            hash = 19 * hash + (this.userEid != null ? this.userEid.hashCode() : 0);
+            hash = 19 * hash + (this.gradingID != null ? this.gradingID.hashCode() : 0);
+            return hash;
+        }
 
 	/**
 	 * Compares two objects with .equals(), but saves you the null check

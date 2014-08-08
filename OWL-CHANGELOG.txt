@@ -1,3 +1,5 @@
+2014.08.08:
+	- [OQJ-21] anon sync job should specify that job was aborted with no changes to data in emails
 2014.07.15:
 	- [OQJ-13] row minimum sanity check
 2014.07.14:

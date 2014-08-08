@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,8 +50,9 @@ public class SyncAnonGradingIDs implements Job
 	private static final String PROP_DO_DELETIONS = "owlquartzjobs.anongrading.sync.doDeletions";
 
 	//from address
-	private String EMAIL_NO_REPLY_ADDRESS = "no-reply@uwo.ca";
-	//email recipients
+	private static final String EMAIL_NO_REPLY_ADDRESS = "no-reply@uwo.ca";
+	
+        //email recipients
 	private List<InternetAddress> recipients = new ArrayList<InternetAddress>();
 
 	private GradebookService gradebookService;
@@ -90,7 +90,7 @@ public class SyncAnonGradingIDs implements Job
 		EmailTemplateHelper.loadTemplate(DUPLICATE_EMAIL_TEMPLATE_XML_FILE, DUPLICATE_EMAIL_TEMPLATE_KEY);
 	}
 
-
+        @Override
 	public void execute( JobExecutionContext jobExecutionContext ) throws JobExecutionException
 	{
 		log.info("execute()");
@@ -225,7 +225,6 @@ public class SyncAnonGradingIDs implements Job
 		catch(Exception exception)
 		{
 			log.error("Exception was thrown: " + exception.getMessage());
-			exception.printStackTrace();
 
 			// Archive the file
 			// Do this only if the file is in the processing directory and we haven't already attempted to archive
@@ -241,7 +240,6 @@ public class SyncAnonGradingIDs implements Job
 				catch (Exception archiveException)
 				{
 					log.error("Archiving failed, exception is: " + archiveException.getMessage());
-					archiveException.printStackTrace();
 				}
 			}
 
@@ -272,7 +270,7 @@ public class SyncAnonGradingIDs implements Job
 
 		for (int i = 0; i < csvRows.size() - 1; i++)
 		{
-			if (skippableIndices.contains(Integer.valueOf(i)))
+			if (skippableIndices.contains(i))
 			{
 				//i and all its duplicates have already been identified
 				continue;
@@ -285,7 +283,7 @@ public class SyncAnonGradingIDs implements Job
 
 			for (int j = i+1; j < csvRows.size(); j++)
 			{
-				if (skippableIndices.contains(Integer.valueOf(j)))
+				if (skippableIndices.contains(j))
 				{
 					//j has already been identified as a duplicate
 					continue;
@@ -294,7 +292,7 @@ public class SyncAnonGradingIDs implements Job
 				AnonGradingCSVRow other = csvRows.get(j);
 				if (base.getSectionEid().equals(other.getSectionEid()) && base.getUserEid().equals(other.getUserEid()))
 				{
-					skippableIndices.add(Integer.valueOf(j));
+					skippableIndices.add(j);
 					if (!baseAdded)
 					{
 						//base hasn't been added yet, so add it now
