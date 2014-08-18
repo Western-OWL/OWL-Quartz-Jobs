@@ -1,66 +1,66 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0">
-	<modelVersion>4.0.0</modelVersion>
-	<name>OWL Quartz Jobs</name>
-	<groupId>ca.uwo.owl</groupId>
-	<artifactId>owl-quartz-jobs</artifactId>
+    <modelVersion>4.0.0</modelVersion>
+    <name>OWL Quartz Jobs</name>
+    <groupId>ca.uwo.owl</groupId>
+    <artifactId>owl-quartz-jobs</artifactId>
 
-	<organization>
+    <organization>
         <name>Western University</name>
         <url>http://uwo.ca/</url>
-	</organization>
-	<inceptionYear>2012</inceptionYear>
-	<version>1.5</version>
+    </organization>
+    <inceptionYear>2012</inceptionYear>
+    <version>1.4.1</version>
 
-	<parent>
-		<groupId>ca.uwo.owl</groupId>
-		<artifactId>owl-quartz-jobs-base</artifactId>
-		<version>1.5</version>
-		<relativePath>../pom.xml</relativePath>
-	</parent>
+    <parent>
+        <groupId>ca.uwo.owl</groupId>
+        <artifactId>owl-quartz-jobs-base</artifactId>
+        <version>1.4.1</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
-	<packaging>jar</packaging>
-  	<properties>
-		<deploy.target />
-  	</properties>
-  	
-	<dependencies>
-		<dependency>
-			<groupId>quartz</groupId>
-			<artifactId>quartz</artifactId>
-			<version>1.5.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.5.8</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.5.8</version>
-		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>jdom</groupId>
-			<artifactId>jdom</artifactId>
-			<version>1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>1.4.5</version>
-		</dependency>
-		<dependency>
-			<groupId>net.sf.opencsv</groupId>
-			<artifactId>opencsv</artifactId>
-			<version>1.8</version>
-		</dependency>
-    	
-		<!-- Sakai dependencies -->
+    <packaging>jar</packaging>
+    <properties>
+        <deploy.target />
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>quartz</groupId>
+            <artifactId>quartz</artifactId>
+            <version>1.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.5.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.5.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.5</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>1.8</version>
+        </dependency>
+
+        <!-- Sakai dependencies -->
         <dependency>
             <groupId>org.sakaiproject.kernel</groupId>
             <artifactId>sakai-kernel-api</artifactId>
@@ -70,41 +70,41 @@
             <artifactId>sakai-component-manager</artifactId>
         </dependency>
         <dependency>
-			<groupId>org.sakaiproject.kernel</groupId>
-  			<artifactId>sakai-kernel-util</artifactId>
-		</dependency>
-	    <dependency>
-			<groupId>org.sakaiproject.edu-services.course-management</groupId>
-			<artifactId>coursemanagement-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.sakaiproject.scheduler</groupId>
-			<artifactId>scheduler-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.sakaiproject.emailtemplateservice</groupId>
-			<artifactId>emailtemplateservice-api</artifactId>
-			<version>${sakai.ets.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.sakaiproject.entitybroker</groupId>
-			<artifactId>entitybroker-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.sakaiproject.edu-services.gradebook</groupId>
-			<artifactId>gradebook-service-api</artifactId>
-		</dependency>
-	</dependencies>
-        
-        <build>
-            <resources>
-            <resource>
-                <directory>${basedir}/src/bundle</directory>
-                <includes>
-                        <include>**/*.xml</include>
-                </includes>
-            </resource>
-            </resources>
-        </build>
+            <groupId>org.sakaiproject.kernel</groupId>
+            <artifactId>sakai-kernel-util</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.sakaiproject.edu-services.course-management</groupId>
+            <artifactId>coursemanagement-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.sakaiproject.scheduler</groupId>
+            <artifactId>scheduler-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.sakaiproject.emailtemplateservice</groupId>
+            <artifactId>emailtemplateservice-api</artifactId>
+            <version>${sakai.ets.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.sakaiproject.entitybroker</groupId>
+            <artifactId>entitybroker-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.sakaiproject.edu-services.gradebook</groupId>
+            <artifactId>gradebook-service-api</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+        <resource>
+            <directory>${basedir}/src/bundle</directory>
+            <includes>
+                <include>**/*.xml</include>
+            </includes>
+        </resource>
+        </resources>
+    </build>
         
 </project>

@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0">
-	<modelVersion>4.0.0</modelVersion>
-	<name>OWL Quartz Jobs Pack</name>
-	<groupId>ca.uwo.owl</groupId>
-	<artifactId>owl-quartz-pack</artifactId>
+    <modelVersion>4.0.0</modelVersion>
+    <name>OWL Quartz Jobs Pack</name>
+    <groupId>ca.uwo.owl</groupId>
+    <artifactId>owl-quartz-pack</artifactId>
 	
-	<organization>
+    <organization>
         <name>Western University</name>
         <url>http://uwo.ca/</url>
     </organization>
     <inceptionYear>2012</inceptionYear>
-	<version>1.5</version>
+    <version>1.4.1</version>
     
     <packaging>sakai-component</packaging>
     <properties>
@@ -18,17 +18,17 @@
     </properties>
     
     <parent>
-		<groupId>ca.uwo.owl</groupId>
+        <groupId>ca.uwo.owl</groupId>
         <artifactId>owl-quartz-jobs-base</artifactId>
-        <version>1.5</version>
+        <version>1.4.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
   
-  	<dependencies>
+    <dependencies>
         <dependency>
             <groupId>ca.uwo.owl</groupId>
             <artifactId>owl-quartz-jobs</artifactId>
-			<version>1.5</version>
+            <version>1.4.1</version>
             <scope>runtime</scope>
         </dependency>
     </dependencies>
