@@ -17,6 +17,7 @@
 		<property name="authzGroupService" ref="org.sakaiproject.authz.api.AuthzGroupService" />
 		<property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
 		<property name="courseManagementService" ref="org.sakaiproject.coursemanagement.api.CourseManagementService" />
+		<property name="securityService" ref="org.sakaiproject.authz.api.SecurityService" />
 	</bean>
 	
 	<!-- This is the helper that will register the above bean with the ScheduleManager

@@ -17,6 +17,8 @@ import org.sakaiproject.authz.api.AuthzGroupService;
 import org.sakaiproject.authz.api.AuthzPermissionException;
 import org.sakaiproject.authz.api.GroupNotDefinedException;
 import org.sakaiproject.authz.api.Member;
+import org.sakaiproject.authz.api.SecurityAdvisor;
+import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.coursemanagement.api.AcademicSession;
 import org.sakaiproject.coursemanagement.api.CourseManagementService;
@@ -65,6 +67,7 @@ public class CheckSitesForCourseCoordinator implements Job
     @Getter @Setter private AuthzGroupService       authzGroupService;
     @Getter @Setter private SessionManager          sessionManager;
     @Getter @Setter private CourseManagementService courseManagementService;
+    @Getter @Setter private SecurityService securityService;  // --plukasew (OQJ-18) 
 
     /**
      * init - perform any actions required here for when this bean starts up
@@ -98,6 +101,16 @@ public class CheckSitesForCourseCoordinator implements Job
     {
         if( log.isDebugEnabled() )
             log.debug( "execute()" );
+        
+        // Create SecurityAdvisor (required for realm edits)  --plukasew (OQJ-18)
+        SecurityAdvisor yesMan = new SecurityAdvisor()
+        {
+            @Override
+            public SecurityAdvice isAllowed(String userId, String function, String reference)
+            {
+                return SecurityAdvice.ALLOWED;
+            }
+        };
 
         // Loop through a list of all course sites
         List<Site> sites = siteService.getSites( SelectionType.ANY, "course", null, null, SortType.NONE, null );
@@ -153,21 +166,16 @@ public class CheckSitesForCourseCoordinator implements Job
                         {
                             try
                             {
-                                // Set the current session's user id to the admin user (for the realm edit)
-                                Session currentSession = sessionManager.getCurrentSession();
-                                currentSession.setUserId( "admin" );
+                                // SecurityAdvisor required for the realm edit  --plukasew (OQJ-18)
+                                securityService.pushAdvisor(yesMan);
 
                                 // "Remove" the member from the site so that it exposes their true Sakora role (course coordinator, etc.)
                                 AuthzGroup realmEdit = authzGroupService.getAuthzGroup( realmId );
                                 realmEdit.removeMember( member.getUserId() );
                                 authzGroupService.save( realmEdit );
-                                currentSession.setUserId( null );
 
-                                // Log a success message
                                 log.info( "Successfully exposed Sakora role (user: " + member.getUserId() + ", site: " + realmId );
                             }
-
-                            // Log any exceptions thrown during the realm edit
                             catch( GroupNotDefinedException ex ) 
                             {
                                 log.error( "Realm does not exist: " + realmId, ex );
@@ -175,6 +183,10 @@ public class CheckSitesForCourseCoordinator implements Job
                             catch( AuthzPermissionException ex ) 
                             { 
                                 log.error( "Insufficient privileges to remove user (user: " + member.getUserId() + ", site: " + realmId, ex );
+                            }
+                            finally
+                            {
+                                securityService.popAdvisor(yesMan);
                             }
                         }
                     }
