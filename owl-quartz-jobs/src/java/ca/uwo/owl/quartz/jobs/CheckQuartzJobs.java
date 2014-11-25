@@ -6,10 +6,6 @@
 
 package ca.uwo.owl.quartz.jobs;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.*;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
@@ -17,10 +13,6 @@ import javax.mail.internet.InternetAddress;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.log4j.Logger;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -28,11 +20,8 @@ import org.quartz.JobExecutionException;
 
 import org.sakaiproject.api.app.scheduler.events.TriggerEvent;
 import org.sakaiproject.api.app.scheduler.events.TriggerEventManager;
-import org.sakaiproject.authz.api.SecurityAdvisor;
-import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.email.api.EmailService;
-import org.sakaiproject.emailtemplateservice.model.EmailTemplate;
 import org.sakaiproject.emailtemplateservice.model.RenderedTemplate;
 
 import org.sakaiproject.emailtemplateservice.service.EmailTemplateService;
@@ -57,10 +46,6 @@ public class CheckQuartzJobs implements Job
     private static final String[] heartbeatJobThresholdArray = ServerConfigurationService.getStrings(HEARTBEAT_JOBTHRESHOLD_SAKAI_PROPERTY);
     private static final Map<String, Long> alertThresholdMap;
     
-    // bjones86 - email template stuff
-    private static final String UTF8_ENC_STRING		= "utf8";			// UTF8 encoding string
-    private static final String TMPLT_EMAIL_TMPLT	= "emailTemplate";	// The name of the email template element
-    
     static // initialize the alert threshold map
     {
         alertThresholdMap = new HashMap<String, Long>(); // maps job name -> alert threshold (in hours)
@@ -84,12 +69,6 @@ public class CheckQuartzJobs implements Job
     }
         
     // email template constants
-    private static final String ADMIN_ID 				= "admin";		// The login ID for the admin user
-    private static final String TMPLT_ELMNT_SUBJECT		= "subject";			// The name of the subject element
-	private static final String TMPLT_ELMNT_MESSAGE		= "message";			// The name of the message element
-	private static final String TMPLT_ELMNT_HTML		= "messagehtml";		// The name of the message html element
-	private static final String TMPLT_ELMNT_LOCALE		= "locale";			// The name of the locale element
-	private static final String TMPLT_ELMNT_VERSION		= "version";			// The name of the version element
     private static final String EMAIL_HEARTBEAT_TEMPLATE = "owlquartzjobs.checkquartzjobs.heartbeat";
     private static final String EMAIL_HEARTBEAT_TEMPLATE_XML_FILE = "heartbeatEmailTemplate.xml";
     private static final String EMAIL_HEARTBEAT_TEMPLATE_KEY_JOBS = "jobs";
@@ -104,9 +83,6 @@ public class CheckQuartzJobs implements Job
 	@Getter @Setter private EmailTemplateService emailTemplateService;
     @Getter @Setter private EmailService emailService;
 	@Getter @Setter private DeveloperHelperService developerHelperService;
-	
-	// bjones86 - better security for email template stuff
-	@Getter @Setter private SecurityService securityService;
 	
 	public void init()
 	{
@@ -129,7 +105,7 @@ public class CheckQuartzJobs implements Job
             }
         }
         
-        loadTemplate(EMAIL_HEARTBEAT_TEMPLATE_XML_FILE, EMAIL_HEARTBEAT_TEMPLATE);
+        EmailTemplateHelper.loadTemplate(EMAIL_HEARTBEAT_TEMPLATE_XML_FILE, EMAIL_HEARTBEAT_TEMPLATE);
 	}
 	
         @Override
@@ -195,10 +171,11 @@ public class CheckQuartzJobs implements Job
             //time elapsed since the job completed:
             long millisPassed = System.currentTimeMillis()-date.getTime();
             //time that millisPassed must be less than:
-            Long threshold = alertThresholdMap.get(jobName) * 60 * 60 * 1000;  // hours -> milliseconds
+            Long threshold = alertThresholdMap.get(jobName);   
             if (threshold != null)
             {
-                if (millisPassed<threshold)
+                long thresholdMillis = threshold * 60 * 60 * 1000; // hours -> milliseconds
+                if (millisPassed < thresholdMillis) 
                 {
                     //the job has completed, no need to notify
                     jobNotify.put(jobName, Boolean.FALSE);
@@ -247,111 +224,5 @@ public class CheckQuartzJobs implements Job
         }
             
     } // end heartMonitor()
-        
-    /**
-	 * Load and register a one or more email templates (contained in the given
-	 * .xml file) with the email template service
-	 * 
-	 * @author bjones86
-	 * 
-	 * @param fileName - the name of the .xml file to load
-	 * @param templateKey - the key (name) of the template to be saved to the service
-	 */
-	private void loadTemplate( String fileName, String templateKey )
-	{
-		// Create the SecurityAdvisor (elevated permissions needed to use EmailTemplateService)
-		SecurityAdvisor yesMan = new SecurityAdvisor()
-		{
-                        @Override
-			public SecurityAdvice isAllowed( String userID, String function, String reference )
-			{
-				return SecurityAdvice.ALLOWED;
-			}
-		};
-		
-		try
-		{
-			// Push the yesMan SA on the stack and perform the necessary actions
-			securityService.pushAdvisor( yesMan );
-			
-			// Load up the resource as an input stream
-			InputStream input = CheckQuartzJobs.class.getClassLoader().getResourceAsStream( fileName );
-			if( input == null )
-				log.error( "Could not load resource from '" + fileName + "'. Skipping..." );
-			else
-			{
-				// Parse the XML, get all the child templates
-				Document document = new SAXBuilder().build( input );
-				List<?> childTemplates = document.getRootElement().getChildren( TMPLT_EMAIL_TMPLT );
-				Iterator<?> iter = childTemplates.iterator();
-				
-				// Create and register a template with the service for each one found in the XML file
-				while( iter.hasNext() )
-					xmlToTemplate( (Element) iter.next(), templateKey );
-			}
-		}
-		catch( JDOMException e ) { log.error( e.getMessage(), e ); }
-		catch( IOException e ) 	 { log.error( e.getMessage(), e ); }
-		
-		// Pop the yesMan SA off the stack (remove elevated permissions)
-		finally { securityService.popAdvisor( yesMan ); }
-	}
-	
-	/**
-	 * Extracts the email template fields from the given XML element. Checks
-	 * if the email template already exists; if it does and the new copy has
-	 * a higher version number than that of the one currently in the service, 
-	 * it will update the existing email template. Otherwise it will just save 
-	 * the template to the service.
-	 * 
-	 * @author bjones86
-	 * 
-	 * @param xmlTemplate - the XML element containing the email template data
-	 * @param templateKey - the key (name) of the template to be saved to the service
-	 */
-	private void xmlToTemplate( Element xmlTemplate, String templateKey )
-	{
-		// Extract the necessary data out of the XML element
-		String subject 		= xmlTemplate.getChildText( TMPLT_ELMNT_SUBJECT );
-		String body 		= xmlTemplate.getChildText( TMPLT_ELMNT_MESSAGE );
-		String bodyHtml 	= xmlTemplate.getChildText( TMPLT_ELMNT_HTML );
-		String locale 		= xmlTemplate.getChildText( TMPLT_ELMNT_LOCALE );
-		String strVersion 	= xmlTemplate.getChildText( TMPLT_ELMNT_VERSION );
-		String decodedHtml 	= bodyHtml;
-		
-		// Check if there is an html message supplied...
-		if( bodyHtml != null )
-		{
-			try { decodedHtml = URLDecoder.decode( bodyHtml, UTF8_ENC_STRING ); }
-			catch( UnsupportedEncodingException e ) { log.error( e.getMessage(), e ); decodedHtml = null; }
-			catch( NullPointerException e )			{ log.error( e.getMessage(), e ); decodedHtml = null; }
-		}
-		
-		// Check if there was a version supplied...
-		Integer iVersion = 1;
-		try { iVersion = Integer.valueOf( strVersion ); }
-		catch( NumberFormatException e ) { log.error( e.getMessage(), e ); iVersion = 1; }
-		catch( NullPointerException e )  { log.error( e.getMessage(), e ); iVersion = 1; }
-		
-		// If the template already exists, don't do anything (just return)
-		if( emailTemplateService.getEmailTemplate( templateKey, new Locale( locale ) ) != null )
-			return;
-		
-		// Populate the template with the data
-		EmailTemplate template = new EmailTemplate();
-		template.setSubject( subject );
-		template.setMessage( body );
-		template.setLocale( locale );
-		template.setKey( templateKey );
-		template.setOwner( ADMIN_ID );
-		template.setLastModified( new Date() );
-		template.setVersion( iVersion );
-		if( decodedHtml != null )
-			template.setHtmlMessage( decodedHtml );
-		
-		// Save the template and log a success message
-		emailTemplateService.saveTemplate( template );
-		log.info( "Added '" + templateKey + "' to the email template service" );
-	}
         
 } // end class
