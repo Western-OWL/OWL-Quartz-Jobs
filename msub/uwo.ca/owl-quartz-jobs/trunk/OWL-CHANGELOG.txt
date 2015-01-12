@@ -1,3 +1,5 @@
+2015.01.12:
+	- [OQJ-26] port to Sakai 10.3
 2014.11.25:
         - [OQJ-18] security improvement
         - [OQJ-19] refactored CheckQuartzJobs to use EmailTemplateHelper class
