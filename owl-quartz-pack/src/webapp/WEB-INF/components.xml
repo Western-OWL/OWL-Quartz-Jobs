@@ -52,7 +52,6 @@
 		<property name="emailTemplateService" ref="org.sakaiproject.emailtemplateservice.service.EmailTemplateService" />
 		<property name="emailService" ref="org.sakaiproject.email.api.EmailService" />
 		<property name="developerHelperService" ref="org.sakaiproject.entitybroker.DeveloperHelperService" />
-		<property name="securityService" ref="org.sakaiproject.authz.api.SecurityService" />
 	</bean>
 	
 	<bean id = "org.sakaiproject.api.app.scheduler.JobBeanWrapper.checkQuartzJobs"
