@@ -1,3 +1,5 @@
+2016.01.22:
+	- [OQJ-28] refactor site role enforcer to be extendable to any sakora/roster role mapping
 2015.08.25:
 	- [OQJ-27] replaced dependency versions with properties defined in master
 2015.01.12:

@@ -10,12 +10,12 @@
         <url>http://uwo.ca/</url>
     </organization>
     <inceptionYear>2012</inceptionYear>
-    <version>1.5</version>
+    <version>1.5.2</version>
 
     <parent>
         <groupId>ca.uwo.owl</groupId>
         <artifactId>owl-quartz-jobs-base</artifactId>
-        <version>1.5</version>
+        <version>1.5.2</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -53,6 +53,11 @@
             <groupId>net.sf.opencsv</groupId>
             <artifactId>opencsv</artifactId>
             <version>1.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.4</version>
         </dependency>
 
         <!-- Sakai dependencies -->
@@ -100,5 +105,4 @@
         </resource>
         </resources>
     </build>
-        
 </project>
