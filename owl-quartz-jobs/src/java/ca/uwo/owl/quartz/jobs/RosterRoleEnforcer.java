@@ -198,9 +198,15 @@ public class RosterRoleEnforcer implements Job
             // Loop through the memberships for this section
             for( Membership membership : sectionMembershipMap.get( sectionID ) )
             {
+                // Skip to next user if we don't have a mapping for the user's Sakora role (not included in the properties)
+                String membersSakoraRole = membership.getRole();
+                if( !SAKORA_TO_SITE_ROLE_MAP.containsKey( membersSakoraRole ) )
+                {
+                    continue;
+                }
+
                 // If we're NOT searching for Sakora maintainers AND the user's sakora roel is NOT the sakora maintainer role
                 // OR we ARE searching for Sakora maintainers AND the user's sakora role IS the sakora maintainer role...
-                String membersSakoraRole = membership.getRole();
                 if( (!searchForMaintainers && !sakoraMaintainRole.equals( membersSakoraRole )) ||
                     (searchForMaintainers && sakoraMaintainRole.equals( membersSakoraRole )) )
                 {
