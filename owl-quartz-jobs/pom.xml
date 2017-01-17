@@ -10,12 +10,12 @@
         <url>http://uwo.ca/</url>
     </organization>
     <inceptionYear>2012</inceptionYear>
-    <version>1.5.2</version>
+    <version>1.6.0</version>
 
     <parent>
         <groupId>ca.uwo.owl</groupId>
         <artifactId>owl-quartz-jobs-base</artifactId>
-        <version>1.5.2</version>
+        <version>1.6.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

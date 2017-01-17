@@ -1,3 +1,5 @@
+2017.01.17:
+	- [OQJ-34] port to sakai 11, update to spring 4 and quartz 2.2
 2016.01.22:
 	- [OQJ-28] refactor site role enforcer to be extendable to any sakora/roster role mapping
 2015.08.25:

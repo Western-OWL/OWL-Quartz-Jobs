@@ -19,6 +19,7 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 
 import org.sakaiproject.authz.api.SecurityAdvisor;
+import org.sakaiproject.authz.api.SecurityAdvisor.SecurityAdvice;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.email.api.EmailService;
@@ -28,21 +29,24 @@ import org.sakaiproject.emailtemplateservice.service.EmailTemplateService;
 
 /**
  * A class that helps handle common tasks with email templates
+ * 
  * @author bbailla2, bjones86
+ * 
+ * 2017.01.17: bjones86 - OQJ-34 - port to Sakai 11, update to Spring 4 and Quartz 2.2
  **/
 public class EmailTemplateHelper
 {
-	private static final Logger log = Logger.getLogger(EmailTemplateHelper.class);
+	private static final Logger LOG = Logger.getLogger(EmailTemplateHelper.class);
 
 	private static final String UTF8_ENC_STRING = "utf8";
 	private static final String TMPLT_EMAIL_TMPLT = "emailTemplate";
 
 	//email template constants
 	// email template constants
-	private static final String ADMIN_ID				= "admin"; 		// The login ID for the admin user
+	private static final String ADMIN_ID					= "admin"; 			// The login ID for the admin user
 	private static final String TMPLT_ELMNT_SUBJECT			= "subject"; 		// The name of the subject element
 	private static final String TMPLT_ELMNT_MESSAGE			= "message"; 		// The name of the message element
-	private static final String TMPLT_ELMNT_HTML			= "messagehtml"; 	// The name of the message html element
+	private static final String TMPLT_ELMNT_HTML				= "messagehtml"; 	// The name of the message html element
 	private static final String TMPLT_ELMNT_LOCALE			= "locale"; 		// The name of the locale element
 	private static final String TMPLT_ELMNT_VERSION			= "version"; 		// The name of the version element
 
@@ -65,14 +69,7 @@ public class EmailTemplateHelper
 		SecurityService securityService = getSecurityService();
 
 		// Create the SecurityAdvisor (elevated permissions needed to use EmailTemplateService)
-		SecurityAdvisor yesMan = new SecurityAdvisor()
-		{
-                        @Override
-			public SecurityAdvice isAllowed( String userID, String function, String reference )
-			{
-				return SecurityAdvice.ALLOWED;
-			}
-		};
+		SecurityAdvisor yesMan = (String userID, String function, String reference) -> SecurityAdvice.ALLOWED;
 
 		try
 		{
@@ -83,7 +80,7 @@ public class EmailTemplateHelper
 			InputStream input = EmailTemplateHelper.class.getClassLoader().getResourceAsStream( fileName );
 			if( input == null )
 			{
-				log.error( "Could not load resource from '" + fileName + "'. Skipping..." );
+				LOG.error( "Could not load resource from '" + fileName + "'. Skipping..." );
 			}
 			else
 			{
@@ -99,18 +96,14 @@ public class EmailTemplateHelper
 				}
 			}
 		}
-		catch( JDOMException e ) 
-		{ 
-			log.error( e.getMessage(), e ); 
-		}
-		catch( IOException e )   
-		{ 
-			log.error( e.getMessage(), e ); 
+		catch( JDOMException | IOException e )
+		{
+			LOG.error( e.getMessage(), e );
 		}
 
 		// Pop the yesMan SA off the stack (remove elevated permissions)
-		finally 
-		{ 
+		finally
+		{
 			securityService.popAdvisor( yesMan ); 
 		}
 	}
@@ -130,12 +123,12 @@ public class EmailTemplateHelper
 	private static void xmlToTemplate( Element xmlTemplate, String templateKey )
 	{
 		// Extract the necessary data out of the XML element
-		String subject          = xmlTemplate.getChildText( TMPLT_ELMNT_SUBJECT );
-		String body             = xmlTemplate.getChildText( TMPLT_ELMNT_MESSAGE );
-		String bodyHtml         = xmlTemplate.getChildText( TMPLT_ELMNT_HTML );
-		String locale           = xmlTemplate.getChildText( TMPLT_ELMNT_LOCALE );
-		String strVersion       = xmlTemplate.getChildText( TMPLT_ELMNT_VERSION );
-		String decodedHtml      = bodyHtml;
+		String subject			= xmlTemplate.getChildText( TMPLT_ELMNT_SUBJECT );
+		String body				= xmlTemplate.getChildText( TMPLT_ELMNT_MESSAGE );
+		String bodyHtml			= xmlTemplate.getChildText( TMPLT_ELMNT_HTML );
+		String locale			= xmlTemplate.getChildText( TMPLT_ELMNT_LOCALE );
+		String strVersion		= xmlTemplate.getChildText( TMPLT_ELMNT_VERSION );
+		String decodedHtml		= bodyHtml;
 
 		// Check if there is an html message supplied...
 		if( bodyHtml != null )
@@ -144,30 +137,21 @@ public class EmailTemplateHelper
 			{
 				decodedHtml = URLDecoder.decode( bodyHtml, UTF8_ENC_STRING ); 
 			}
-			catch( UnsupportedEncodingException e ) 
+			catch( UnsupportedEncodingException | NullPointerException e )
 			{
-				log.error( e.getMessage(), e ); decodedHtml = null; 
-			}
-			catch( NullPointerException e )
-			{
-				log.error( e.getMessage(), e ); decodedHtml = null; 
+				LOG.error( e.getMessage(), e ); decodedHtml = null; 
 			}
 		}
 
 		// Check if there was a version supplied...
-		Integer iVersion = 1;
-		try 
+		Integer iVersion;
+		try
 		{
 			iVersion = Integer.valueOf( strVersion );
 		}
-		catch( NumberFormatException e ) 
+		catch( NumberFormatException | NullPointerException e ) 
 		{
-			log.error( e.getMessage(), e ); 
-			iVersion = 1;
-		}
-		catch( NullPointerException e )
-		{
-			log.error( e.getMessage(), e );
+			LOG.error( e.getMessage(), e );
 			iVersion = 1;
 		}
 
@@ -194,7 +178,7 @@ public class EmailTemplateHelper
 
 		// Save the template and log a success message
 		emailTemplateService.saveTemplate( template );
-		log.info( "Added '" + templateKey + "' to the email template service" );
+		LOG.info( "Added '" + templateKey + "' to the email template service" );
 	}
 
 	/**

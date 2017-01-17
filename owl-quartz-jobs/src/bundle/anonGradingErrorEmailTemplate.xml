@@ -7,7 +7,7 @@ ${error}
 
 The job has been aborted and the data has not been changed. See logs for more info (node is ${node}).
         </message>
-		<locale>en</locale>
-		<version>1</version>
+        <locale>en</locale>
+        <version>1</version>
     </emailTemplate>
 </emailTemplates>

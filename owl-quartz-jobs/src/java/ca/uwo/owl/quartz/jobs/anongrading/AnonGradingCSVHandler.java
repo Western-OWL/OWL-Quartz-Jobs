@@ -1,7 +1,3 @@
-// bbailla2
-// Reads from a csv file from the registrar and updates the OWL_ANON_GRADING_ID table
-// 2013.10.09, bbailla2, Created
-
 package ca.uwo.owl.quartz.jobs.anongrading;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -20,12 +16,16 @@ import org.sakaiproject.component.cover.ComponentManager;
 
 /**
  * This class is responsible for the reading of CSVs that contain new Anonymous Grading ID data
+ * 
  * @author bbailla2
+ * 
+ * 2013.10.09: bbailla2 - OQJ-?? - reads from a csv file from the registrar and updates the OWL_ANON_GRADING_ID table
+ * 2017.01.17: bjones86 - OQJ-34 - port to Sakai 11, update to Spring 4 and Quartz 2.2
  *
  */
 public class AnonGradingCSVHandler 
 {
-	private static final Logger log = Logger.getLogger(AnonGradingCSVHandler.class);
+	private static final Logger LOG = Logger.getLogger(AnonGradingCSVHandler.class);
 
 	//sakai property specifying the absolute directory of the anonymous grading csv's pickup location
 	private static final String PROP_CSV_LOCATION = "anongrading.csv.location";	
@@ -41,10 +41,10 @@ public class AnonGradingCSVHandler
 	//sakai property specifying the maximum grading ID (job will bail if a grading ID exceeds the maximum)
 	private static final String PROP_MAX_GRADING_ID = "anongrading.maximum.gradingId";
 	private static final int MAX_GRADING_ID_DEFAULT = 9999;
-    // sakai property specifiy the minimum number of rows that must appear in the file for this job to process it
-    private static final String PROP_MIN_ROW_COUNT = "anongrading.minimum.rowCount";
-    private static final int MIN_ROW_COUNT_DEFAULT = 10;
-	
+	// sakai property specifiy the minimum number of rows that must appear in the file for this job to process it
+	private static final String PROP_MIN_ROW_COUNT = "anongrading.minimum.rowCount";
+	private static final int MIN_ROW_COUNT_DEFAULT = 10;
+
 	//the default csv location relative to the sakai home path
 	private static final String DEFAULT_CSV_LOCATION = "anon-grades";
 	//the default csv file name
@@ -111,15 +111,15 @@ public class AnonGradingCSVHandler
 	{
 		return getServerConfigurationService().getInt(PROP_MAX_GRADING_ID, MAX_GRADING_ID_DEFAULT);
 	}
-    
-    /**
-     * Returns the minimum number of rows that must appear in the csv in order for it to be considered valid for processing
-     */
-    private int getMinRowThreshold()
-    {
-        return getServerConfigurationService().getInt(PROP_MIN_ROW_COUNT, MIN_ROW_COUNT_DEFAULT);
-    }
-	
+
+	/**
+	 * Returns the minimum number of rows that must appear in the csv in order for it to be considered valid for processing
+	 */
+	private int getMinRowThreshold()
+	{
+		return getServerConfigurationService().getInt(PROP_MIN_ROW_COUNT, MIN_ROW_COUNT_DEFAULT);
+	}
+
 	/**
 	 * Parses the anon-grading csv file and stores the result in a List of AnonGradingCSVRows.
 	 * @return a list of AnonGradingCSVRows representing the contents of the CSV file
@@ -127,7 +127,7 @@ public class AnonGradingCSVHandler
 	 */
 	public List<AnonGradingCSVRow> getAnonGradingCSVRows()
 	{
-		List<AnonGradingCSVRow> csvRows = new ArrayList<AnonGradingCSVRow>();
+		List<AnonGradingCSVRow> csvRows = new ArrayList<>();
 
 		//Get the location of the csv file. Assume it has been placed in the processing directory
 		String csvLocation = threadProcessingLocation + File.separator + getCSVFileName();
@@ -135,7 +135,7 @@ public class AnonGradingCSVHandler
 		File csvFile = new File(csvLocation);
 		if (!csvFile.exists())
 		{
-			log.error(csvLocation + " doesn't exist");
+			LOG.error(csvLocation + " doesn't exist");
 			throw new AnonGradingCSVParseException("File doesn't exist");
 		}
 		else
@@ -143,8 +143,7 @@ public class AnonGradingCSVHandler
 			// Get the minimum and maximum grading IDs for validation to do later
 			int minGradingID = getMinimumGradingID();
 			int maxGradingID = getMaximumGradingID();
-            
-            int threshold = getMinRowThreshold(); // OQJ-13  --plukasew
+			int threshold = getMinRowThreshold(); // OQJ-13  --plukasew
 
 			//this is somewhat based on sakora's CsvHandlerBase.setup(CsvSyncContext context) method
 			BufferedReader br = null;
@@ -178,13 +177,13 @@ public class AnonGradingCSVHandler
 						gradingId = Integer.parseInt(line[2]);
 						if (gradingId < minGradingID || gradingId > maxGradingID)
 						{
-							log.error("Grading ID out of range");
+							LOG.error("Grading ID out of range");
 							throw new AnonGradingCSVParseException("Grading ID is not between the minimum (" + minGradingID + ") and the maximum (" + maxGradingID + "): " + line[2] + "; userEid: " + userEid + "; sectionEid: " + sectionEid);
 						}
 					}
 					catch(NumberFormatException e)
 					{
-						log.error("nfe while parsing grading ID");
+						LOG.error("nfe while parsing grading ID");
 						throw new AnonGradingCSVParseException("Grading ID is not an integer: " + line[2] + "; userEid: " + userEid + "; sectionEid: " + sectionEid);
 					}
 					AnonGradingCSVRow row = new AnonGradingCSVRow(sectionEid, userEid, gradingId);
@@ -192,17 +191,17 @@ public class AnonGradingCSVHandler
 					line = csvr.readNext();
 					++lineNumber;
 				}
-                
-                // OQJ-13  --plukasew
-                if (lineNumber < threshold)
-                {
-                    log.error("Read only " + lineNumber + " lines in CSV, threshold is " + threshold);
-                    throw new AnonGradingCSVParseException("Minimum row threshold not met");
-                }
+
+				// OQJ-13  --plukasew
+				if (lineNumber < threshold)
+				{
+					LOG.error("Read only " + lineNumber + " lines in CSV, threshold is " + threshold);
+					throw new AnonGradingCSVParseException("Minimum row threshold not met");
+				}
 			}
 			catch (IOException e)
 			{
-				log.error("IOException while reading CSV");
+				LOG.error("IOException while reading CSV");
 				throw new AnonGradingCSVParseException("IOException while reading CSV:\n" + e.getMessage(), e);
 			}
 			finally
@@ -225,14 +224,13 @@ public class AnonGradingCSVHandler
 				}
 			}
 		}
-		
+
 		return csvRows;
 	}
 
-
 	/**
 	 * Moves files from the CSV pickup location to the processing directory
-         * @throws java.io.IOException
+	 * @throws java.io.IOException
 	 */
 	public void moveToProcessingDir() throws IOException
 	{
@@ -249,7 +247,7 @@ public class AnonGradingCSVHandler
 	/**
 	 * Archives the CSV file from the processing directory into the archiving directory
 	 * @param success archive's title will include the word 'finished' if true; 'failed' if false
-         * @throws java.io.IOException
+	 * @throws java.io.IOException
 	 */
 	public void archiveCSV(boolean success) throws IOException
 	{
@@ -272,7 +270,6 @@ public class AnonGradingCSVHandler
 		//Move the precessing directory itself to the archive
 		processingDir.renameTo(archivePath);
 	}
-
 
 	/**
 	 * From Sakora's CsvSyncServiceImpl:
@@ -329,5 +326,4 @@ public class AnonGradingCSVHandler
 		String filePath = homePath + File.separator + DEFAULT_CSV_LOCATION;
 		return filePath;
 	}
-
 } // end class

@@ -1,7 +1,3 @@
-// bbailla2
-// Represents a row in the csv - keeps track of a SectionEID, a userEID and a grading ID
-// 2013.10.09, bbailla2, Created
-
 package ca.uwo.owl.quartz.jobs.anongrading;
 
 import org.apache.log4j.Logger;
@@ -12,13 +8,17 @@ import org.apache.log4j.Logger;
  * Each student has a grading ID, and each term the grading ID changes.
  * This means that sections from previous terms can have old grading IDs.
  * The data in the csv maps pairs of (section, user) to grading Ids.
+ * 
  * @author bbailla2
+ * 
+ * 2013.10.09: bbailla2 - OQJ-?? - Represents a row in the csv - keeps track of a SectionEID, a userEID and a grading ID
+ * 2017.01.17: bjones86 - OQJ-34 - port to Sakai 11, update to Spring 4 and Quartz 2.2
  *
  */
 public class AnonGradingCSVRow
 {
-	private static final Logger log = Logger.getLogger(AnonGradingCSVRow.class);
-	
+	private static final Logger LOG = Logger.getLogger(AnonGradingCSVRow.class);
+
 	private String sectionEid;
 	private String userEid;
 	private Integer gradingID;
@@ -66,7 +66,7 @@ public class AnonGradingCSVRow
 		this.gradingID = gradingID;
 	}
 
-        @Override
+	@Override
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder("(");
@@ -74,7 +74,7 @@ public class AnonGradingCSVRow
 		return sb.toString();
 	}
 
-        @Override
+	@Override
 	public boolean equals(Object obj)
 	{
 		if (obj instanceof AnonGradingCSVRow)
@@ -85,15 +85,15 @@ public class AnonGradingCSVRow
 		return false;
 	}
 
-        @Override
-        public int hashCode()
-        {
-            int hash = 3;
-            hash = 19 * hash + (this.sectionEid != null ? this.sectionEid.hashCode() : 0);
-            hash = 19 * hash + (this.userEid != null ? this.userEid.hashCode() : 0);
-            hash = 19 * hash + (this.gradingID != null ? this.gradingID.hashCode() : 0);
-            return hash;
-        }
+	@Override
+	public int hashCode()
+	{
+		int hash = 3;
+		hash = 19 * hash + (this.sectionEid != null ? this.sectionEid.hashCode() : 0);
+		hash = 19 * hash + (this.userEid != null ? this.userEid.hashCode() : 0);
+		hash = 19 * hash + (this.gradingID != null ? this.gradingID.hashCode() : 0);
+		return hash;
+	}
 
 	/**
 	 * Compares two objects with .equals(), but saves you the null check
@@ -106,5 +106,4 @@ public class AnonGradingCSVRow
 		}
 		return obj1.equals(obj2);
 	}
-
 } // end class

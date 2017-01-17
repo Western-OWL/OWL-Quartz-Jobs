@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN"
-	"http://www.springframework.org/dtd/spring-beans.dtd">
 
-<beans>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <!-- This is the actual bean to execute (with an optional parameter that is consumed by the job)
         Things to note:
@@ -30,7 +30,7 @@
     -->
     <bean id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.rosterRoleEnforcer"
         class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper"
-        singleton="true" init-method="init">
+        init-method="init">
 
         <property name="beanId">
             <value>rosterRoleEnforcer</value>
@@ -56,7 +56,7 @@
 
     <bean id = "org.sakaiproject.api.app.scheduler.JobBeanWrapper.checkQuartzJobs"
         class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper"
-        singleton="true" init-method="init">
+        init-method="init">
 
         <property name="beanId">
             <value>checkQuartzJobs</value>
@@ -71,7 +71,7 @@
         </property>
     </bean>
 
-    <bean id="syncAnonGradingIDs" init-method="init"
+<!--    <bean id="syncAnonGradingIDs" init-method="init"
         class="ca.uwo.owl.quartz.jobs.anongrading.SyncAnonGradingIDs">
 
         <property name="gradebookService" ref="org.sakaiproject.service.gradebook.GradebookService" />
@@ -79,7 +79,7 @@
 
     <bean id = "org.sakaiproject.api.app.scheduler.JobBeanWrapper.syncAnonGradingIDs"
         class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper"
-        singleton="true" init-method="init">
+        init-method="init">
 
         <property name="beanId">
             <value>syncAnonGradingIDs</value>
@@ -92,5 +92,5 @@
         <property name="schedulerManager">
             <ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
         </property>
-    </bean>
+    </bean>-->
 </beans>

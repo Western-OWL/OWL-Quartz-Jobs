@@ -52,22 +52,16 @@ import org.sakaiproject.user.api.UserNotDefinedException;
  * 2014.06.24: bjones86 - OQJ-15 - add active academic session restriction
  * 2014.11.25: plukasew - 0QJ-18 - security improvement for realm edit
  * 2016.01.19: bjones86 - OQJ-28 - re-implement the role enforcer to be extendable to any/all Sakora roles
+ * 2017.01.17: bjones86 - OQJ-34 - port to Sakai 11, update to Spring 4 and Quartz 2.2
  *
  */
 public class RosterRoleEnforcer implements Job
 {
     // Class memebers
     private static final Logger                 LOG                     = Logger.getLogger(RosterRoleEnforcer.class );
-    private static final Map<String, String>    SITE_TO_SAKORA_ROLE_MAP = new HashMap<String, String>();
-    private static final Map<String, String>    SAKORA_TO_SITE_ROLE_MAP = new HashMap<String, String>();
-    private static final SecurityAdvisor        YES_MAN                 = new SecurityAdvisor()
-    {
-        @Override
-        public SecurityAdvisor.SecurityAdvice isAllowed( String userId, String function, String reference )
-        {
-            return SecurityAdvisor.SecurityAdvice.ALLOWED;
-        }
-    };
+    private static final Map<String, String>    SITE_TO_SAKORA_ROLE_MAP = new HashMap<>();
+    private static final Map<String, String>    SAKORA_TO_SITE_ROLE_MAP = new HashMap<>();
+    private static final SecurityAdvisor        YES_MAN                 = (String userId, String function, String reference) -> SecurityAdvisor.SecurityAdvice.ALLOWED;
 
     // Sakai.properties
     private static final String SAKAI_PROPS_SAKORA_ROLES    = "sitemanage.siteCreation.sakoraRoles";
@@ -143,7 +137,7 @@ public class RosterRoleEnforcer implements Job
                 String sakoraMaintainRole = SITE_TO_SAKORA_ROLE_MAP.get( siteMaintainRole );
 
                 // Determine if there are Sakora enrolments for an official maintainer (instructor in the Sakora data)
-                Map<String, Set<Membership>> sectionMembershipMap = new HashMap<String, Set<Membership>>();
+                Map<String, Set<Membership>> sectionMembershipMap = new HashMap<>();
                 boolean rostersHaveInstructor = false;
                 for( String sectionID : sectionIDs )
                 {
@@ -307,7 +301,7 @@ public class RosterRoleEnforcer implements Job
             Section section = null;
             try { section = courseManagementService.getSection( sectionID ); }
             catch( IdNotFoundException ex ) { LOG.error( "Section does not exist, ID = <" + sectionID + ">. ", ex ); }
-            
+
             // If the section is not null, get the course offering; otherwise skip to next iteration (section ID)
             if( section != null )
             {
