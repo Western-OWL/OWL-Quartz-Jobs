@@ -30,8 +30,6 @@ Roster Role Enforcer
 
 
 
-
-
 SyncAnonGradingIDs
 	Background:
 		-Faculty of Law can grade anonymously.
