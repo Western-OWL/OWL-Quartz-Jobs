@@ -4,7 +4,7 @@ CheckQuartzJobs
 	Requirements:
 		-Maps sakai.properties 'owlquartzjobs.checkquartzjobs.heartbeat.joblist' to 'owlquartzjobs.checkquartzjobs.heartbeat.jobthreshold' (OQJ-4)
 		-Lists any jobs in the key set that haven't had a 'Completed' trigger event within their associated threshold (OQJ-2)
-		-Sends this list via email to email addresses specified by owlquartzjobs.checkquartzjobs.email.notificationList (OQJ-2)
+		-If this list is non-empty, it is sent via email to email addresses specified by owlquartzjobs.checkquartzjobs.email.notificationList (OQJ-2)
 			-Email subject includes local sakai name (ie. sakdev / sakqat / owl) (OQJ-5)
 
 Roster Role Enforcer
