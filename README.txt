@@ -26,12 +26,6 @@ Roster Role Enforcer
 					-and an INS is present in the site
 		-For performance, course sites scanned need only be from the currently active session (OQJ-15)
 
-
-
-
-
-
-
 SyncAnonGradingIDs
 	Background:
 		-Faculty of Law can grade anonymously.
