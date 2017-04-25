@@ -157,7 +157,7 @@ public class AnonGradingCSVHandler
 				int lineNumber = 1;
 				while (line != null)
 				{
-					if (line.length == 1 && "".equals(line[0]))
+					if (line.length == 1 && StringUtils.isBlank(line[0]))
 					{
 						//skip empty lines (they appear as having one empty string cell)
 						line = csvr.readNext();

@@ -71,7 +71,7 @@
         </property>
     </bean>
 
-<!--    <bean id="syncAnonGradingIDs" init-method="init"
+    <bean id="syncAnonGradingIDs" init-method="init"
         class="ca.uwo.owl.quartz.jobs.anongrading.SyncAnonGradingIDs">
 
         <property name="gradebookService" ref="org.sakaiproject.service.gradebook.GradebookService" />
@@ -92,5 +92,5 @@
         <property name="schedulerManager">
             <ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
         </property>
-    </bean>-->
+    </bean>
 </beans>
