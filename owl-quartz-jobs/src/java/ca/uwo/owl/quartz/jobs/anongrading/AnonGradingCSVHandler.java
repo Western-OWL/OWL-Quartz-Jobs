@@ -170,12 +170,12 @@ public class AnonGradingCSVHandler
 					{
 						throw new AnonGradingCSVParseException("CSV row is too short. Line #" + lineNumber);
 					}
-					String sectionEid = line[0];
-					String userEid = line[1];
+					String sectionEid = StringUtils.trimToEmpty(line[0]);
+					String userEid = StringUtils.trimToEmpty(line[1]);
 					Integer gradingId = null;
 					try
 					{
-						gradingId = Integer.parseInt(line[2]);
+						gradingId = Integer.parseInt(StringUtils.trimToEmpty(line[2]));
 						if (gradingId < minGradingID || gradingId > maxGradingID)
 						{
 							LOG.error("Grading ID out of range");

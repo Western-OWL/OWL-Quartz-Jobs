@@ -1,3 +1,5 @@
+2017.06.06:
+	- [OQJ-37] trim whitespace when parsing CSVs
 2017.05.01:
 	- [OQJ-36] update parent pom relative path
 2017.01.17:
