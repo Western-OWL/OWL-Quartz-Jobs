@@ -53,6 +53,7 @@ import org.sakaiproject.user.api.UserNotDefinedException;
  * 2014.11.25: plukasew - 0QJ-18 - security improvement for realm edit
  * 2016.01.19: bjones86 - OQJ-28 - re-implement the role enforcer to be extendable to any/all Sakora roles
  * 2017.01.17: bjones86 - OQJ-34 - port to Sakai 11, update to Spring 4 and Quartz 2.2
+ * 2017.08.23: bjones86 - OQJ-38 - add null check on Member object
  *
  */
 public class RosterRoleEnforcer implements Job
@@ -217,26 +218,30 @@ public class RosterRoleEnforcer implements Job
 
                     // Get the site member's site role, and determine what the user's site role SHOULD be based on their Sakora role
                     Member member = site.getMember( userID );
-                    String membersSiteRole = member.getRole().getId();
-                    String membersSiteRoleShouldMatch = SAKORA_TO_SITE_ROLE_MAP.get( membersSakoraRole );
 
-                    // If the user's Sakora role differes from their site role...
-                    if( !membersSiteRole.equals( membersSiteRoleShouldMatch ) )
+                    if( member != null )
                     {
-                        // If we're NOT searching for Sakora maintainers AND the user's site role is the maintain role
-                        // AND all rosters attached to the site do not have an official maintainer defined in the Sakora data...
-                        if( !searchForMaintainers && siteMaintainRole.equals( membersSiteRole ) && !rostersHaveInstructor )
-                        {
-                            // Log a message indicating why this enforcement was skipped (could leave no maintainer in the site)
-                            LOG.info( "Skipping Sakora role enforcement (user: " + membership.getUserId() + ", site: " + realmID +
-                                      ", sakoraRole: " + membersSakoraRole + ", siteRole: " + member.getRole().getId() +
-                                      "), as this enforcement could leave the site with no active maintainers." );
-                        }
+                        String membersSiteRole = member.getRole().getId();
+                        String membersSiteRoleShouldMatch = SAKORA_TO_SITE_ROLE_MAP.get( membersSakoraRole );
 
-                        // Otherwise, remove them to expose their true sakora/site role
-                        else
+                        // If the user's Sakora role differes from their site role...
+                        if( !membersSiteRole.equals( membersSiteRoleShouldMatch ) )
                         {
-                            removeUserFromRealm( member, membership, realmID, membersSakoraRole, membersSiteRoleShouldMatch );
+                            // If we're NOT searching for Sakora maintainers AND the user's site role is the maintain role
+                            // AND all rosters attached to the site do not have an official maintainer defined in the Sakora data...
+                            if( !searchForMaintainers && siteMaintainRole.equals( membersSiteRole ) && !rostersHaveInstructor )
+                            {
+                                // Log a message indicating why this enforcement was skipped (could leave no maintainer in the site)
+                                LOG.info( "Skipping Sakora role enforcement (user: " + membership.getUserId() + ", site: " + realmID +
+                                          ", sakoraRole: " + membersSakoraRole + ", siteRole: " + member.getRole().getId() +
+                                          "), as this enforcement could leave the site with no active maintainers." );
+                            }
+
+                            // Otherwise, remove them to expose their true sakora/site role
+                            else
+                            {
+                                removeUserFromRealm( member, membership, realmID, membersSakoraRole, membersSiteRoleShouldMatch );
+                            }
                         }
                     }
                 }
