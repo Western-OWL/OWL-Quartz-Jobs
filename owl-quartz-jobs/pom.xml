@@ -10,12 +10,12 @@
         <url>http://uwo.ca/</url>
     </organization>
     <inceptionYear>2012</inceptionYear>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 
     <parent>
         <groupId>ca.uwo.owl</groupId>
         <artifactId>owl-quartz-jobs-base</artifactId>
-        <version>1.6.0</version>
+        <version>1.7.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -59,6 +59,11 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.4</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.1</version>
+        </dependency>
 
         <!-- Sakai dependencies -->
         <dependency>
@@ -92,6 +97,10 @@
         <dependency>
             <groupId>org.sakaiproject.edu-services.gradebook</groupId>
             <artifactId>gradebook-service-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.sakaiproject.polls</groupId>
+            <artifactId>polls-api</artifactId>
         </dependency>
     </dependencies>
 

@@ -77,7 +77,7 @@
         <property name="gradebookService" ref="org.sakaiproject.service.gradebook.GradebookService" />
     </bean>
 
-    <bean id = "org.sakaiproject.api.app.scheduler.JobBeanWrapper.syncAnonGradingIDs"
+    <bean id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.syncAnonGradingIDs"
         class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper"
         init-method="init">
 
@@ -87,6 +87,30 @@
 
         <property name="jobName">
             <value>Syncronize with PeopleSoft's anonymous grading IDs</value>
+        </property>
+
+        <property name="schedulerManager">
+            <ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
+        </property>
+    </bean>
+
+    <bean id="pollOptionsOrderBackFill" class="ca.uwo.owl.quartz.jobs.PollOptionOrderBackFill">
+
+        <property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
+        <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService" />
+        <property name="pollService" ref="org.sakaiproject.poll.logic.PollListManager" />
+    </bean>
+
+    <bean id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.pollOptionsOrderBackFill"
+        class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper"
+        init-method="init">
+
+        <property name="beanId">
+            <value>pollOptionsOrderBackFill</value>
+        </property>
+
+        <property name="jobName">
+            <value>Backfill all existing poll option's order based on their original ID</value>
         </property>
 
         <property name="schedulerManager">
