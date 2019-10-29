@@ -1,12 +1,21 @@
 package ca.uwo.owl.quartz.jobs;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -17,26 +26,22 @@ import org.sakaiproject.api.app.scheduler.events.TriggerEventManager;
 import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.email.api.EmailService;
 import org.sakaiproject.emailtemplateservice.model.RenderedTemplate;
-
 import org.sakaiproject.emailtemplateservice.service.EmailTemplateService;
-
 import org.sakaiproject.entitybroker.DeveloperHelperService;
 
 /**
  * Looks at the recent events of our favourite quartz jobs.
  * If any such jobs do not have a completed event within a certain threshold, an email is sent
  * 
- * @author bbailla2, plukasew
+ * @author bbailla2, plukasew, bjones86
  * 
  * 2012.08.01: plukasew - OQJ-?? - refactored to pull list of jobs, time thresholds, and email notifications from sakai.properties
  * 2017.01.17: bjones86 - OQJ-34 - port to Sakai 11, update to Spring 4 and Quartz 2.2
  *
  */
+@Slf4j
 public class CheckQuartzJobs implements Job
 {
-    private static final Logger LOG = Logger.getLogger(CheckQuartzJobs.class);
-    private static final String LOG_PREFIX = "OWL: Check Quartz Jobs: ";
-
     private static final String HEARTBEAT_JOBLIST_SAKAI_PROPERTY = "owlquartzjobs.checkquartzjobs.heartbeat.joblist";
     private static final String[] HEARTBEAT_JOBLIST = ServerConfigurationService.getStrings(HEARTBEAT_JOBLIST_SAKAI_PROPERTY);
     private static final String HEARTBEAT_JOBTHRESHOLD_SAKAI_PROPERTY = "owlquartzjobs.checkquartzjobs.heartbeat.jobthreshold";
@@ -59,7 +64,7 @@ public class CheckQuartzJobs implements Job
                 {
                     // log and skip
                     // OWLTODO: Try to notify via email that something is wrong
-                    LOG.error(LOG_PREFIX + "Unable to convert threshold value: " + HEARTBEAT_JOBTHRESHOLD[i] + " into number.");
+                    log.error("Unable to convert threshold value: {} into number.", HEARTBEAT_JOBTHRESHOLD[i]);
                 }
             }
         }
@@ -112,7 +117,7 @@ public class CheckQuartzJobs implements Job
         if (recipients.isEmpty())
         {
             // OWLTODO: Try to send email notification that something is wrong
-            LOG.error(LOG_PREFIX + "Email recipients list is empty, aborting job. Check sakai.properties.");
+            log.error("Email recipients list is empty, aborting job. Check sakai.properties.");
             return;
         }
 
@@ -132,7 +137,7 @@ public class CheckQuartzJobs implements Job
         if (ALERT_THRESHOLD_MAP.isEmpty())
         {
             // OWLTODO: Try to send email notification that something is wrong
-            LOG.error(LOG_PREFIX + "Heartbeat job/threshold map is empty, aborting job. Check sakai.properties.");
+            log.error("Heartbeat job/threshold map is empty, aborting job. Check sakai.properties.");
             return;
         }
 
@@ -140,10 +145,7 @@ public class CheckQuartzJobs implements Job
         HashMap<String, Boolean> jobNotify = new HashMap<>();
 
         //assume none of the jobs ran
-        for (String job : ALERT_THRESHOLD_MAP.keySet())
-        {
-            jobNotify.put(job, Boolean.TRUE);
-        }
+        ALERT_THRESHOLD_MAP.keySet().forEach(job -> jobNotify.put(job, Boolean.TRUE));
 
         //get the all the relevant trigger events
         //earliest date we care about

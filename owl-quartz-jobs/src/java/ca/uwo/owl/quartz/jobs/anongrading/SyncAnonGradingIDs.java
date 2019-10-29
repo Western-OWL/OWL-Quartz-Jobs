@@ -34,6 +34,7 @@
 // * 2017.01.17: bjones86 - OQJ-34 - port to Sakai 11, update to Spring 4 and Quartz 2.2
 // *
 // */
+// OWLTODO: @Slf4j, remove LOG, change to new logger style, java 9 code updates
 //public class SyncAnonGradingIDs implements Job
 //{
 //	private static final Logger LOG = Logger.getLogger(SyncAnonGradingIDs.class);

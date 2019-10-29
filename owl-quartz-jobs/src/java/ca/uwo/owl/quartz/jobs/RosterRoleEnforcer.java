@@ -5,14 +5,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+
 import org.sakaiproject.authz.api.AuthzGroup;
 import org.sakaiproject.authz.api.AuthzGroupService;
 import org.sakaiproject.authz.api.AuthzPermissionException;
@@ -56,10 +61,10 @@ import org.sakaiproject.user.api.UserNotDefinedException;
  * 2017.08.23: bjones86 - OQJ-38 - add null check on Member object
  *
  */
+@Slf4j
 public class RosterRoleEnforcer implements Job
 {
     // Class memebers
-    private static final Logger                 LOG                     = Logger.getLogger(RosterRoleEnforcer.class );
     private static final Map<String, String>    SITE_TO_SAKORA_ROLE_MAP = new HashMap<>();
     private static final Map<String, String>    SAKORA_TO_SITE_ROLE_MAP = new HashMap<>();
     private static final SecurityAdvisor        YES_MAN                 = (String userId, String function, String reference) -> SecurityAdvisor.SecurityAdvice.ALLOWED;
@@ -81,10 +86,7 @@ public class RosterRoleEnforcer implements Job
      */
     public void init()
     {
-        if( LOG.isDebugEnabled() )
-        {
-            LOG.debug( "init()" );
-        }
+        log.debug( "init()" );
 
         List<String> sakoraRoles = Arrays.asList( ArrayUtils.nullToEmpty( ServerConfigurationService.getStrings( SAKAI_PROPS_SAKORA_ROLES ) ) );
         List<String> siteRoles = Arrays.asList( ArrayUtils.nullToEmpty( ServerConfigurationService.getStrings( SAKAI_PROPS_SITE_ROLES ) ) );
@@ -98,7 +100,7 @@ public class RosterRoleEnforcer implements Job
         }
         else
         {
-            LOG.warn( "Sakai.properties sitemanage.siteCreation.sakoraRoles and/or sitemanage.siteCreation.siteRoles non-existant or not equal." );
+            log.warn( "Sakai.properties sitemanage.siteCreation.sakoraRoles and/or sitemanage.siteCreation.siteRoles non-existant or not equal." );
         }
     }
 
@@ -111,10 +113,7 @@ public class RosterRoleEnforcer implements Job
     @Override
     public void execute( JobExecutionContext jobExecutionContext ) throws JobExecutionException
     {
-        if( LOG.isDebugEnabled() )
-        {
-            LOG.debug( "execute()" );
-        }
+        log.debug( "execute()" );
 
         // Short circuit if the map is not populated
         if( !SITE_TO_SAKORA_ROLE_MAP.isEmpty() )
@@ -167,7 +166,7 @@ public class RosterRoleEnforcer implements Job
         }
         else
         {
-            LOG.warn( "Aborting without processing anything; roleMap is empty" );
+            log.warn( "Aborting without processing anything; roleMap is empty" );
         }
     }
 
@@ -208,7 +207,7 @@ public class RosterRoleEnforcer implements Job
                     // Get the user's internal ID
                     String userID = "";
                     try { userID = userDirectoryService.getUserId( membership.getUserId() ); }
-                    catch( UserNotDefinedException ex ) { LOG.error( "Can't find user by ID: " + membership.getUserId(), ex ); }
+                    catch( UserNotDefinedException ex ) { log.error( "Can't find user by ID: {}", membership.getUserId(), ex ); }
 
                     // If the user ID couldn't be found for whatever reason, continue to the next Membership in the list
                     if( StringUtils.isEmpty( userID ) )
@@ -232,9 +231,9 @@ public class RosterRoleEnforcer implements Job
                             if( !searchForMaintainers && siteMaintainRole.equals( membersSiteRole ) && !rostersHaveInstructor )
                             {
                                 // Log a message indicating why this enforcement was skipped (could leave no maintainer in the site)
-                                LOG.info( "Skipping Sakora role enforcement (user: " + membership.getUserId() + ", site: " + realmID +
-                                          ", sakoraRole: " + membersSakoraRole + ", siteRole: " + member.getRole().getId() +
-                                          "), as this enforcement could leave the site with no active maintainers." );
+                                log.info( "Skipping Sakora role enforcement (user: {}, site: {}, sakoraRole: {}, siteRole: {}), "
+                                        + "as this enforcement could leave the site with no active maintainers.",
+                                          membership.getUserId(), realmID, membersSakoraRole, member.getRole().getId() );
                             }
 
                             // Otherwise, remove them to expose their true sakora/site role
@@ -269,12 +268,11 @@ public class RosterRoleEnforcer implements Job
             AuthzGroup realmEdit = authzGroupService.getAuthzGroup( realmID );
             realmEdit.removeMember( member.getUserId() );
             authzGroupService.save( realmEdit );
-            LOG.info( "Successfully enforced Sakora role (user: " + membership.getUserId() + ", site: " + realmID +
-                      ", sakoraRole: " + membersSakoraRole + ", origSiteRole: " + member.getRole().getId() + 
-                      ", enforcedSiteRole: " + membersEnforcedSiteRole + ")" );
+            log.info( "Successfully enforced Sakora role (user: {}, site: {}, sakoraRole: {}, origSiteRole: {}, enforcedSiteRole: {})",
+                      membership.getUserId(), realmID, membersSakoraRole, member.getRole().getId(), membersEnforcedSiteRole );
         }
-        catch( GroupNotDefinedException ex ) { LOG.error( "Realm does not exist: " + realmID, ex ); }
-        catch( AuthzPermissionException ex ) { LOG.error( "Insufficient privileges to remove user (user: " + member.getUserId() + ", site: " + realmID, ex ); }
+        catch( GroupNotDefinedException ex ) { log.error( "Realm does not exist: {}", realmID, ex ); }
+        catch( AuthzPermissionException ex ) { log.error( "Insufficient privileges to remove user (user: {}, site: {}", member.getUserId(), realmID, ex ); }
         finally { securityService.popAdvisor( YES_MAN ); }
     }
 
@@ -287,14 +285,14 @@ public class RosterRoleEnforcer implements Job
     private boolean hasCurrentSection( Set<String> sectionIDs )
     {
         // If no section IDs are provided, return false
-        if( sectionIDs == null || sectionIDs.isEmpty() )
+        if( CollectionUtils.isEmpty( sectionIDs ) )
         {
             return false;
         }
 
         // Get all the 'active' academic sessions; if there are none, return false
         List<AcademicSession> currentSessions = courseManagementService.getCurrentAcademicSessions();
-        if( currentSessions == null || currentSessions.isEmpty() )
+        if( CollectionUtils.isEmpty( currentSessions ) )
         {
             return false;
         }
@@ -305,7 +303,7 @@ public class RosterRoleEnforcer implements Job
             // Get the section
             Section section = null;
             try { section = courseManagementService.getSection( sectionID ); }
-            catch( IdNotFoundException ex ) { LOG.error( "Section does not exist, ID = <" + sectionID + ">. ", ex ); }
+            catch( IdNotFoundException ex ) { log.error( "Section does not exist, ID = <{}>. ", sectionID, ex ); }
 
             // If the section is not null, get the course offering; otherwise skip to next iteration (section ID)
             if( section != null )
@@ -313,22 +311,16 @@ public class RosterRoleEnforcer implements Job
                 CourseOffering offering = null;
                 String courseOfferingID = section.getCourseOfferingEid();
                 try { offering = courseManagementService.getCourseOffering( courseOfferingID ); }
-                catch( IdNotFoundException ex ) { LOG.error( "CourseOffering does not exist, ID = <" + courseOfferingID + ">.", ex ); }
+                catch( IdNotFoundException ex ) { log.error( "CourseOffering does not exist, ID = <{}>.", courseOfferingID, ex ); }
 
                 // If the course offering is not null, get the academic session; otherwise skip to next iteration (section ID)
                 if( offering != null )
                 {
                     // If the academic session is not null, and if the EID of the session matches that of any of the 'active' sessions, return true
                     AcademicSession session = offering.getAcademicSession();
-                    if( session != null )
+                    if( session != null && currentSessions.stream().anyMatch( as -> as.getEid().equals( session.getEid() ) ) )
                     {
-                        for( AcademicSession currentSession : currentSessions )
-                        {
-                            if( currentSession.getEid().equals( session.getEid() ) )
-                            {
-                                return true;
-                            }
-                        }
+                        return true;
                     }
                 }
             }

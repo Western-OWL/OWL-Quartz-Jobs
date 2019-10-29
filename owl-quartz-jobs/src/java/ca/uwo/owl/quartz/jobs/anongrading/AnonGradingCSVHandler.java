@@ -9,8 +9,9 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.component.cover.ComponentManager;
@@ -24,10 +25,9 @@ import org.sakaiproject.component.cover.ComponentManager;
  * 2017.01.17: bjones86 - OQJ-34 - port to Sakai 11, update to Spring 4 and Quartz 2.2
  *
  */
+@Slf4j
 public class AnonGradingCSVHandler 
 {
-	private static final Logger LOG = Logger.getLogger(AnonGradingCSVHandler.class);
-
 	//sakai property specifying the absolute directory of the anonymous grading csv's pickup location
 	private static final String PROP_CSV_LOCATION = "anongrading.csv.location";	
 	//sakai property specifying the file name (excluding the path) of the csv file
@@ -136,7 +136,7 @@ public class AnonGradingCSVHandler
 		File csvFile = new File(csvLocation);
 		if (!csvFile.exists())
 		{
-			LOG.error(csvLocation + " doesn't exist");
+			log.error("{} doesn't exist", csvLocation);
 			throw new AnonGradingCSVParseException("File doesn't exist");
 		}
 		else
@@ -178,13 +178,13 @@ public class AnonGradingCSVHandler
 						gradingId = Integer.parseInt(StringUtils.trimToEmpty(line[2]));
 						if (gradingId < minGradingID || gradingId > maxGradingID)
 						{
-							LOG.error("Grading ID out of range");
+							log.error("Grading ID out of range");
 							throw new AnonGradingCSVParseException("Grading ID is not between the minimum (" + minGradingID + ") and the maximum (" + maxGradingID + "): " + line[2] + "; userEid: " + userEid + "; sectionEid: " + sectionEid);
 						}
 					}
 					catch(NumberFormatException e)
 					{
-						LOG.error("nfe while parsing grading ID");
+						log.error("nfe while parsing grading ID");
 						throw new AnonGradingCSVParseException("Grading ID is not an integer: " + line[2] + "; userEid: " + userEid + "; sectionEid: " + sectionEid);
 					}
 					AnonGradingCSVRow row = new AnonGradingCSVRow(sectionEid, userEid, gradingId);
@@ -196,13 +196,13 @@ public class AnonGradingCSVHandler
 				// OQJ-13  --plukasew
 				if (lineNumber < threshold)
 				{
-					LOG.error("Read only " + lineNumber + " lines in CSV, threshold is " + threshold);
+					log.error("Read only {} lines in CSV, threshold is ", lineNumber, threshold);
 					throw new AnonGradingCSVParseException("Minimum row threshold not met");
 				}
 			}
 			catch (IOException e)
 			{
-				LOG.error("IOException while reading CSV");
+				log.error("IOException while reading CSV");
 				throw new AnonGradingCSVParseException("IOException while reading CSV:\n" + e.getMessage(), e);
 			}
 			finally

@@ -11,8 +11,8 @@ import java.util.Locale;
 import java.util.Map;
 
 import javax.mail.internet.InternetAddress;
+import lombok.extern.slf4j.Slf4j;
 
-import org.apache.log4j.Logger;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -34,19 +34,17 @@ import org.sakaiproject.emailtemplateservice.service.EmailTemplateService;
  * 
  * 2017.01.17: bjones86 - OQJ-34 - port to Sakai 11, update to Spring 4 and Quartz 2.2
  **/
+@Slf4j
 public class EmailTemplateHelper
 {
-	private static final Logger LOG = Logger.getLogger(EmailTemplateHelper.class);
-
 	private static final String UTF8_ENC_STRING = "utf8";
 	private static final String TMPLT_EMAIL_TMPLT = "emailTemplate";
 
-	//email template constants
 	// email template constants
 	private static final String ADMIN_ID					= "admin"; 			// The login ID for the admin user
 	private static final String TMPLT_ELMNT_SUBJECT			= "subject"; 		// The name of the subject element
 	private static final String TMPLT_ELMNT_MESSAGE			= "message"; 		// The name of the message element
-	private static final String TMPLT_ELMNT_HTML				= "messagehtml"; 	// The name of the message html element
+	private static final String TMPLT_ELMNT_HTML			= "messagehtml"; 	// The name of the message html element
 	private static final String TMPLT_ELMNT_LOCALE			= "locale"; 		// The name of the locale element
 	private static final String TMPLT_ELMNT_VERSION			= "version"; 		// The name of the version element
 
@@ -80,7 +78,7 @@ public class EmailTemplateHelper
 			InputStream input = EmailTemplateHelper.class.getClassLoader().getResourceAsStream( fileName );
 			if( input == null )
 			{
-				LOG.error( "Could not load resource from '" + fileName + "'. Skipping..." );
+				log.error( "Could not load resource from '{}'. Skipping...", fileName );
 			}
 			else
 			{
@@ -98,7 +96,7 @@ public class EmailTemplateHelper
 		}
 		catch( JDOMException | IOException e )
 		{
-			LOG.error( e.getMessage(), e );
+			log.error( e.getMessage(), e );
 		}
 
 		// Pop the yesMan SA off the stack (remove elevated permissions)
@@ -139,7 +137,8 @@ public class EmailTemplateHelper
 			}
 			catch( UnsupportedEncodingException | NullPointerException e )
 			{
-				LOG.error( e.getMessage(), e ); decodedHtml = null; 
+				log.error( e.getMessage(), e );
+				decodedHtml = null;
 			}
 		}
 
@@ -151,7 +150,7 @@ public class EmailTemplateHelper
 		}
 		catch( NumberFormatException | NullPointerException e ) 
 		{
-			LOG.error( e.getMessage(), e );
+			log.error( e.getMessage(), e );
 			iVersion = 1;
 		}
 
@@ -178,7 +177,7 @@ public class EmailTemplateHelper
 
 		// Save the template and log a success message
 		emailTemplateService.saveTemplate( template );
-		LOG.info( "Added '" + templateKey + "' to the email template service" );
+		log.info( "Added '{}' to the email template service", templateKey );
 	}
 
 	/**
