@@ -47,6 +47,7 @@ public class CheckQuartzJobs implements Job
     private static final String HEARTBEAT_JOBTHRESHOLD_SAKAI_PROPERTY = "owlquartzjobs.checkquartzjobs.heartbeat.jobthreshold";
     private static final String[] HEARTBEAT_JOBTHRESHOLD = ServerConfigurationService.getStrings(HEARTBEAT_JOBTHRESHOLD_SAKAI_PROPERTY);
     private static final Map<String, Long> ALERT_THRESHOLD_MAP;
+    private static final String SCHEDULED_INVOCATION_PREFIX = "Scheduled Invocation:";
 
     static // initialize the alert threshold map
     {
@@ -141,7 +142,7 @@ public class CheckQuartzJobs implements Job
             return;
         }
 
-        //This maps each job to a boolean - true iff a notification needs to be sent out for that job
+        //This maps each job to a boolean - true if a notification needs to be sent out for that job
         HashMap<String, Boolean> jobNotify = new HashMap<>();
 
         //assume none of the jobs ran
@@ -161,13 +162,19 @@ public class CheckQuartzJobs implements Job
 
         for( TriggerEvent event : events )
         {
-            String jobName=event.getJobName();
+            String jobName = event.getJobName();
+
+            // If job name starts with scheduled invocation prefix, the job name in sakai.propertis IS the prefix
+            if (jobName != null && jobName.startsWith(SCHEDULED_INVOCATION_PREFIX))
+            {
+                jobName = SCHEDULED_INVOCATION_PREFIX;
+            }
 
             Date date = event.getTime();
             //time elapsed since the job completed:
             long millisPassed = System.currentTimeMillis()-date.getTime();
             //time that millisPassed must be less than:
-            Long threshold = ALERT_THRESHOLD_MAP.get(jobName);   
+            Long threshold = ALERT_THRESHOLD_MAP.get(jobName);
             if (threshold != null)
             {
                 long thresholdMillis = threshold * 60 * 60 * 1000; // hours -> milliseconds
