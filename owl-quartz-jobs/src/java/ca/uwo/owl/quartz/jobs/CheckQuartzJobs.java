@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
@@ -157,10 +158,13 @@ public class CheckQuartzJobs implements Job
         //the trigger event types we care about
         TriggerEvent.TRIGGER_EVENT_TYPE[] triggerEventTypes = new TriggerEvent.TRIGGER_EVENT_TYPE[]{TriggerEvent.TRIGGER_EVENT_TYPE.COMPLETE};
 
-        List<TriggerEvent> events = triggerEventManager.getTriggerEvents(minDate, maxDate, new ArrayList<>(ALERT_THRESHOLD_MAP.keySet()), null, triggerEventTypes);
-        //Iterate over the events and figure out if they've completed within the expected threshold
+        List<TriggerEvent> events = triggerEventManager.getTriggerEvents(minDate, maxDate, null, null, triggerEventTypes);
+        List<TriggerEvent> targettedEvents = events.stream()
+                .filter( e -> ALERT_THRESHOLD_MAP.keySet().contains( e.getJobName() ) || e.getJobName().startsWith( SCHEDULED_INVOCATION_PREFIX ) )
+                .collect( Collectors.toList() );
 
-        for( TriggerEvent event : events )
+        //Iterate over the events and figure out if they've completed within the expected threshold
+        for( TriggerEvent event : targettedEvents )
         {
             String jobName = event.getJobName();
 
