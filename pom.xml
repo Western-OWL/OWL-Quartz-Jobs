@@ -10,13 +10,13 @@
         <url>http://uwo.ca/</url>
     </organization>
     <inceptionYear>2012</inceptionYear>
-    <version>1.8.0</version>
+    <version>1.10.0</version>
     <packaging>pom</packaging>
 
     <parent>
         <artifactId>master</artifactId>
         <groupId>org.sakaiproject</groupId>
-        <version>20.2</version>
+        <version>22.2</version>
         <relativePath>../../master/pom.xml</relativePath>
     </parent>
 

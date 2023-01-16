@@ -233,7 +233,7 @@ public class RosterRoleEnforcer implements Job
                                 // Log a message indicating why this enforcement was skipped (could leave no maintainer in the site)
                                 log.info( "Skipping Sakora role enforcement (user: {}, site: {}, sakoraRole: {}, siteRole: {}), "
                                         + "as this enforcement could leave the site with no active maintainers.",
-                                          membership.getUserId(), realmID, membersSakoraRole, member.getRole().getId() );
+                                          new Object[] {membership.getUserId(), realmID, membersSakoraRole, member.getRole().getId()} );
                             }
 
                             // Otherwise, remove them to expose their true sakora/site role
@@ -269,10 +269,10 @@ public class RosterRoleEnforcer implements Job
             realmEdit.removeMember( member.getUserId() );
             authzGroupService.save( realmEdit );
             log.info( "Successfully enforced Sakora role (user: {}, site: {}, sakoraRole: {}, origSiteRole: {}, enforcedSiteRole: {})",
-                      membership.getUserId(), realmID, membersSakoraRole, member.getRole().getId(), membersEnforcedSiteRole );
+                      new Object[] {membership.getUserId(), realmID, membersSakoraRole, member.getRole().getId(), membersEnforcedSiteRole} );
         }
         catch( GroupNotDefinedException ex ) { log.error( "Realm does not exist: {}", realmID, ex ); }
-        catch( AuthzPermissionException ex ) { log.error( "Insufficient privileges to remove user (user: {}, site: {}", member.getUserId(), realmID, ex ); }
+        catch( AuthzPermissionException ex ) { log.error( "Insufficient privileges to remove user (user: {}, site: {}}", new Object[] {member.getUserId(), realmID}, ex ); }
         finally { securityService.popAdvisor( YES_MAN ); }
     }
 

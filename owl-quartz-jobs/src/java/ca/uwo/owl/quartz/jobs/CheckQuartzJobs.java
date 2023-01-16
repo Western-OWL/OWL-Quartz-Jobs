@@ -25,8 +25,8 @@ import org.sakaiproject.api.app.scheduler.events.TriggerEvent;
 import org.sakaiproject.api.app.scheduler.events.TriggerEventManager;
 import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.email.api.EmailService;
-import org.sakaiproject.emailtemplateservice.model.RenderedTemplate;
-import org.sakaiproject.emailtemplateservice.service.EmailTemplateService;
+import org.sakaiproject.emailtemplateservice.api.EmailTemplateService;
+import org.sakaiproject.emailtemplateservice.api.RenderedTemplate;
 import org.sakaiproject.entitybroker.DeveloperHelperService;
 
 /**
@@ -196,7 +196,7 @@ public class CheckQuartzJobs implements Job
         if (!jobsToEmail.isEmpty())
         {
             // OWLTODO: Refactor this email attempt/fallback code into its own reusable method
-            Map<String, String> replacementValues = new HashMap<>();
+            Map<String, Object> replacementValues = new HashMap<>();
             replacementValues.put(EMAIL_HEARTBEAT_TEMPLATE_KEY_JOBS, jobsToEmail.toString());
 
             try

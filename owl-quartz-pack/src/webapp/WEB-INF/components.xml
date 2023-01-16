@@ -49,7 +49,7 @@
         class="ca.uwo.owl.quartz.jobs.CheckQuartzJobs">
 
         <property name="triggerEventManager" ref="org.sakaiproject.api.app.scheduler.events.TriggerEventManager" />
-        <property name="emailTemplateService" ref="org.sakaiproject.emailtemplateservice.service.EmailTemplateService" />
+        <property name="emailTemplateService" ref="org.sakaiproject.emailtemplateservice.api.EmailTemplateService" />
         <property name="emailService" ref="org.sakaiproject.email.api.EmailService" />
         <property name="developerHelperService" ref="org.sakaiproject.entitybroker.DeveloperHelperService" />
     </bean>

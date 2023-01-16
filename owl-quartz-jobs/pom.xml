@@ -10,12 +10,12 @@
         <url>http://uwo.ca/</url>
     </organization>
     <inceptionYear>2012</inceptionYear>
-    <version>1.8.0</version>
+    <version>1.10.0</version>
 
     <parent>
         <groupId>ca.uwo.owl</groupId>
         <artifactId>owl-quartz-jobs-base</artifactId>
-        <version>1.8.0</version>
+        <version>1.10.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -32,10 +32,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
+            <version>1.6.4</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+            <version>1.6.4</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -84,10 +86,6 @@
         <dependency>
             <groupId>org.sakaiproject.scheduler</groupId>
             <artifactId>scheduler-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.sakaiproject.emailtemplateservice</groupId>
-            <artifactId>emailtemplateservice-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.sakaiproject.entitybroker</groupId>
