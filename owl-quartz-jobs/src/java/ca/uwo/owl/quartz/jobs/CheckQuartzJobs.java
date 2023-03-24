@@ -17,6 +17,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -46,6 +48,7 @@ public class CheckQuartzJobs implements Job
     private static final String[] HEARTBEAT_JOBLIST = ServerConfigurationService.getStrings(HEARTBEAT_JOBLIST_SAKAI_PROPERTY);
     private static final String HEARTBEAT_JOBTHRESHOLD_SAKAI_PROPERTY = "owlquartzjobs.checkquartzjobs.heartbeat.jobthreshold";
     private static final String[] HEARTBEAT_JOBTHRESHOLD = ServerConfigurationService.getStrings(HEARTBEAT_JOBTHRESHOLD_SAKAI_PROPERTY);
+    private static final String SCHEDULED_INVOCATION_NAME_PREFIX = "Scheduled Invocation:";
     private static final Map<String, Long> ALERT_THRESHOLD_MAP;
 
     static // initialize the alert threshold map
@@ -162,12 +165,16 @@ public class CheckQuartzJobs implements Job
         for( TriggerEvent event : events )
         {
             String jobName=event.getJobName();
+            if (StringUtils.startsWith(jobName, SCHEDULED_INVOCATION_NAME_PREFIX))
+            {
+                jobName = SCHEDULED_INVOCATION_NAME_PREFIX;
+            }
 
             Date date = event.getTime();
             //time elapsed since the job completed:
             long millisPassed = System.currentTimeMillis()-date.getTime();
             //time that millisPassed must be less than:
-            Long threshold = ALERT_THRESHOLD_MAP.get(jobName);   
+            Long threshold = ALERT_THRESHOLD_MAP.get(jobName);
             if (threshold != null)
             {
                 long thresholdMillis = threshold * 60 * 60 * 1000; // hours -> milliseconds
