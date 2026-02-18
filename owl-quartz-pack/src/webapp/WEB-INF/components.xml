@@ -93,4 +93,33 @@
             <ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
         </property>
     </bean>
+
+    <bean id="finalGradesReport" init-method="init"
+        class="ca.uwo.owl.quartz.jobs.FinalGradesReport">
+
+        <property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
+        <!--<property name="authzGroupService" ref="org.sakaiproject.authz.api.AuthzGroupService" />
+        <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />-->
+        <property name="courseManagementService" ref="org.sakaiproject.coursemanagement.api.CourseManagementService" />
+        <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService" />
+        <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService" />
+        <!--<property name="gradebookService" ref="org.sakaiproject.service.gradebook.GradebookService" />-->
+    </bean>
+
+    <bean id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.finalGradesReport"
+        class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper"
+        init-method="init">
+
+        <property name="beanId">
+            <value>finalGradesReport</value>
+        </property>
+
+        <property name="jobName">
+            <value>Compile report of unsubmitted final grades</value>
+        </property>
+
+        <property name="schedulerManager">
+            <ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
+        </property>
+    </bean>
 </beans>
