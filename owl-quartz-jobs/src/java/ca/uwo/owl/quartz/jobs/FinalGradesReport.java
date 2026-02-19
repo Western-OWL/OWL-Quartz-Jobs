@@ -25,6 +25,11 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.authz.api.AuthzGroupService;
+import org.sakaiproject.coursemanagement.api.CourseManagementService;
+import org.sakaiproject.coursemanagement.api.CourseOffering;
+import org.sakaiproject.coursemanagement.api.CourseSet;
+import org.sakaiproject.coursemanagement.api.Section;
+import org.sakaiproject.coursemanagement.api.exception.IdNotFoundException;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
 
@@ -43,7 +48,9 @@ public class FinalGradesReport implements Job
 	@Getter @Setter private ServerConfigurationService scs;
 	@Getter @Setter private SiteService ss;
 	@Getter @Setter private AuthzGroupService ags;
+	@Getter @Setter private CourseManagementService cms;
 
+	private static final String DELIMITER = " || ";
 	private static final String REPORT_DIR_NAME = "finalGradesReports";
 	private static final String REPORT_FILE_NAME = "finalGradesReport-";
 	private static final String REPORT_ERRORS_SUFFIX = "-ERRORS.txt";
@@ -58,71 +65,124 @@ public class FinalGradesReport implements Job
 	@Override
 	public void execute(JobExecutionContext ctx) throws JobExecutionException
 	{
+		// Create the output dir as needed; if it can't be created, no point in generating the report
+		if (!checkOutputDir())
+		{
+			return;
+		}
+
 		var data = new HashMap<ReportKey, ReportData>(1000);  // OWLTODO: revise sizing with real numbers for qat/prd
 		var errors = new ArrayList<String>();
 
-		// site iteration and data gathering goes here (build up Report)
 		// Loop through a list of all course sites
+		// OWLTODO: softly deleted sites desired? SelectionType.ANY ignores them
 		List<Site> sites = ss.getSites(SiteService.SelectionType.ANY, "course", null, null, SiteService.SortType.NONE, null);
 		for (Site site : sites)
 		{
 			// Get the realm ID of the site; get the sections for the site
 			String realmID = ss.siteReference(site.getId());
-			Set<String> sectionIDs = ags.getProviderIds(realmID);
-			SiteData siteData = new SiteData(site.getId(), site.getTitle());
-			for (String secID : sectionIDs)
+			Set<String> sectionEIDs = ags.getProviderIds(realmID);
+			for (String secEID : sectionEIDs)
 			{
-				ReportKey key = new ReportKey(secID, site.getId());
+				Section sec = getSection(secEID);
+				if (sec == null)
+				{
+					errors.add("Unable to get section by EID: " + secEID);
+					continue;
+				}
 
-				// OWLTODO: get section/dept data from services
-				SecData secData = new SecData("1", "Fake Section 1", "Fake Dept", "This is a fake department");
+				CourseOffering offering = getCourseOffering(sec.getCourseOfferingEid());
+				if (offering == null)
+				{
+					errors.add("Unable to get course offering by EID: " + sec.getCourseOfferingEid());
+					continue;
+				}
 
+				Set<String> setEIDs = offering.getCourseSetEids();
+				List<String> deptTitles = new ArrayList<>(setEIDs.size());
+				List<String> deptDescriptions = new ArrayList<>(setEIDs.size());
+				for (String setEID : setEIDs)
+				{
+					CourseSet set = getCourseSet(setEID);
+					if (set == null)
+					{
+						errors.add("Unable to get course set by EID: " + setEID);
+						continue;
+					}
+
+					deptTitles.add(set.getTitle());
+					deptDescriptions.add(set.getDescription());
+				}
+
+				SecData sd = new SecData(sec.getEid(), sec.getTitle(), String.join(DELIMITER, deptTitles), String.join(DELIMITER, deptDescriptions));
 				// OWLTODO: get grade data from services
 				FGData fg = new FGData(9, 1, 5);
 
-				ReportData rd = new ReportData(fg, siteData, secData);
-				data.put(key, rd);
+				ReportData rd = new ReportData(fg, new SiteData(site.getId(), site.getTitle()), sd);
+				data.put(new ReportKey(secEID, site.getId()), rd);
 			}
 		}
 
-
-		// Dummy data; OWLTODO: remove this when we have services generating this data
-		errors.add("Fake error");
-		// End dummy data
-
-		// Create the output dir as needed; if we can't create it, log and abort
-		try
-		{
-			checkOutputDir();
-		}
-		catch (Exception e)
-		{
-			log.error("Unable to create output directory; aborting!");
-			return;
-		}
-
 		// outputFile compilation and saving goes here (consume Report)
-		var report = new Report(data, errors);
 		long timestamp = System.currentTimeMillis(); // Use the same timestamp for both files
-		outputReport(report, timestamp);
+		outputReport(new Report(data, errors), timestamp);
 		outputErrors(errors, timestamp);
 	}
 
+	private Section getSection(String sectionEID)
+	{
+		try { return cms.getSection(sectionEID); }
+		catch (IdNotFoundException e)
+		{
+			log.error("Unable to get section by EID: {}", sectionEID);
+			return null;
+		}
+	}
+
+	private CourseOffering getCourseOffering(String offeringEID)
+	{
+		try { return cms.getCourseOffering(offeringEID); }
+		catch (IdNotFoundException e)
+		{
+			log.error("Unable to get course offering by EID: {}", offeringEID);
+			return null;
+		}
+	}
+
+	private CourseSet getCourseSet(String setEID)
+	{
+		try { return cms.getCourseSet(setEID); }
+		catch(IdNotFoundException e)
+		{
+			log.error("Unable to get course set by EID: {}", setEID);
+			return null;
+		}
+	}
 
 	/**
 	 * Checks for the existence of the output directory, and creates it if necessary.
-	 * Exceptions are left to bubble so we can catch and abort in the event the directory
-	 * could not be created.
+	 * @return true if the output directory exists or was created successfully; false otherwise
 	 */
-	private void checkOutputDir()
+	private boolean checkOutputDir()
 	{
+		boolean success = true;
 		String outputDir = scs.getSakaiHomePath() + REPORT_DIR_NAME;
-		File dir = new File(outputDir);
-		if (!dir.exists())
+		try
 		{
-			dir.mkdirs();
-			log.debug("Created output dir: {}", outputDir);
+			File dir = new File(outputDir);
+			if (!dir.exists())
+			{
+				dir.mkdirs();
+				log.debug("Created output dir: {}", outputDir);
+			}
 		}
+		catch (Exception ex)
+		{
+			log.error("Unable to create output directory; aborting!");
+			success = false;
+		}
+
+		return success;
 	}
 
 	/**
