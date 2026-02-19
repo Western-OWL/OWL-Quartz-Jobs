@@ -101,6 +101,7 @@
         <property name="ss" ref="org.sakaiproject.site.api.SiteService" />
         <property name="ags" ref="org.sakaiproject.authz.api.AuthzGroupService" />
         <property name="cms" ref="org.sakaiproject.coursemanagement.api.CourseManagementService" />
+        <property name="ogs" ref="org.sakaiproject.service.gradebook.shared.owl.OwlGradebookService" />
     </bean>
 
     <bean id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.finalGradesReport"

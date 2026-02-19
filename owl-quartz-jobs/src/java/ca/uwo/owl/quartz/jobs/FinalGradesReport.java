@@ -30,6 +30,8 @@ import org.sakaiproject.coursemanagement.api.CourseOffering;
 import org.sakaiproject.coursemanagement.api.CourseSet;
 import org.sakaiproject.coursemanagement.api.Section;
 import org.sakaiproject.coursemanagement.api.exception.IdNotFoundException;
+import org.sakaiproject.service.gradebook.shared.owl.OwlGradebookService;
+import org.sakaiproject.service.gradebook.shared.owl.finalgrades.report.FGChanges;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
 
@@ -49,6 +51,7 @@ public class FinalGradesReport implements Job
 	@Getter @Setter private SiteService ss;
 	@Getter @Setter private AuthzGroupService ags;
 	@Getter @Setter private CourseManagementService cms;
+	@Getter @Setter private OwlGradebookService ogs;
 
 	private static final String DELIMITER = " || ";
 	private static final String REPORT_DIR_NAME = "finalGradesReports";
@@ -80,7 +83,8 @@ public class FinalGradesReport implements Job
 		for (Site site : sites)
 		{
 			// Get the realm ID of the site; get the sections for the site
-			String realmID = ss.siteReference(site.getId());
+			String siteID = site.getId();
+			String realmID = ss.siteReference(siteID);
 			Set<String> sectionEIDs = ags.getProviderIds(realmID);
 			for (String secEID : sectionEIDs)
 			{
@@ -115,11 +119,9 @@ public class FinalGradesReport implements Job
 				}
 
 				SecData sd = new SecData(sec.getEid(), sec.getTitle(), String.join(DELIMITER, deptTitles), String.join(DELIMITER, deptDescriptions));
-				// OWLTODO: get grade data from services
-				FGData fg = new FGData(9, 1, 5);
-
-				ReportData rd = new ReportData(fg, new SiteData(site.getId(), site.getTitle()), sd);
-				data.put(new ReportKey(secEID, site.getId()), rd);
+				FGChanges fgc = ogs.getFinalGradeChanges(siteID, secEID);
+				ReportData rd = new ReportData(new FGData(fgc.revised, fgc.added, fgc.removed), new SiteData(siteID, site.getTitle()), sd);
+				data.put(new ReportKey(secEID, siteID), rd);
 			}
 		}
 
