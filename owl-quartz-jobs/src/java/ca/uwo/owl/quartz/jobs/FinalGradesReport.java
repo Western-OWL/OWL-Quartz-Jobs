@@ -1,6 +1,7 @@
 package ca.uwo.owl.quartz.jobs;
 
 import com.opencsv.CSVWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -28,18 +29,22 @@ import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
 
 /**
- * Scans all course sites and compiles an outputFile of the number of unsubmitted final grades by section.
+ * Scans all course sites and compiles a report of the number of unsubmitted final grades by section.
+ * Files are output to <tomcatDir>/sakai/finalGradesReports/
+ * Report files are named with the pattern: finalGradesReport-<unixTimestamp>.csv
+ * Error files are named with the pattern: finalGradesReport-<unixTimestamp>-ERRORS.txt
+ *
  * @author plukasew
  * @author bjones86
  */
 @Slf4j
 public class FinalGradesReport implements Job
 {
-
 	@Getter @Setter private ServerConfigurationService scs;
-	@Getter @Setter private SiteService             siteService;
-	@Getter @Setter private AuthzGroupService       authzGroupService;
+	@Getter @Setter private SiteService ss;
+	@Getter @Setter private AuthzGroupService ags;
 
+	private static final String REPORT_DIR_NAME = "finalGradesReports";
 	private static final String REPORT_FILE_NAME = "finalGradesReport-";
 	private static final String REPORT_ERRORS_SUFFIX = "-ERRORS.txt";
 	private static final String REPORT_FILE_EXT = ".csv";
@@ -58,12 +63,12 @@ public class FinalGradesReport implements Job
 
 		// site iteration and data gathering goes here (build up Report)
 		// Loop through a list of all course sites
-		List<Site> sites = siteService.getSites(SiteService.SelectionType.ANY, "course", null, null, SiteService.SortType.NONE, null);
+		List<Site> sites = ss.getSites(SiteService.SelectionType.ANY, "course", null, null, SiteService.SortType.NONE, null);
 		for (Site site : sites)
 		{
 			// Get the realm ID of the site; get the sections for the site
-			String realmID = siteService.siteReference(site.getId());
-			Set<String> sectionIDs = authzGroupService.getProviderIds(realmID);
+			String realmID = ss.siteReference(site.getId());
+			Set<String> sectionIDs = ags.getProviderIds(realmID);
 			SiteData siteData = new SiteData(site.getId(), site.getTitle());
 			for (String secID : sectionIDs)
 			{
@@ -82,28 +87,42 @@ public class FinalGradesReport implements Job
 
 
 		// Dummy data; OWLTODO: remove this when we have services generating this data
-		/*errors.add("Fake error");
-		ReportKey key = new ReportKey("1", "1");
-		FGData fg = new FGData(9, 1, 5);
-		SiteData site = new SiteData("1", "Fake Site 1");
-		SecData sec = new SecData("1", "Fake Section 1", "Fake Dept", "This is a fake department");
-		ReportData rd = new ReportData(fg, site, sec);
-		data.put(key, rd);
-
-		key = new ReportKey("2", "1");
-		fg = new FGData(4, 6, 8);
-		site = new SiteData("1", "Fake Site 1");
-		sec = new SecData("2", "Fake Section 2", "Fake Dept", "This is a fake department");
-		rd = new ReportData(fg, site, sec);
-		data.put(key, rd);*/
+		errors.add("Fake error");
 		// End dummy data
 
-		var report = new Report(data, errors);
+		// Create the output dir as needed; if we can't create it, log and abort
+		try
+		{
+			checkOutputDir();
+		}
+		catch (Exception e)
+		{
+			log.error("Unable to create output directory; aborting!");
+			return;
+		}
 
 		// outputFile compilation and saving goes here (consume Report)
+		var report = new Report(data, errors);
 		long timestamp = System.currentTimeMillis(); // Use the same timestamp for both files
 		outputReport(report, timestamp);
 		outputErrors(errors, timestamp);
+	}
+
+
+	/**
+	 * Checks for the existence of the output directory, and creates it if necessary.
+	 * Exceptions are left to bubble so we can catch and abort in the event the directory
+	 * could not be created.
+	 */
+	private void checkOutputDir()
+	{
+		String outputDir = scs.getSakaiHomePath() + REPORT_DIR_NAME;
+		File dir = new File(outputDir);
+		if (!dir.exists())
+		{
+			dir.mkdirs();
+			log.debug("Created output dir: {}", outputDir);
+		}
 	}
 
 	/**
@@ -117,7 +136,7 @@ public class FinalGradesReport implements Job
 	{
 		if (CollectionUtils.isNotEmpty(errors))
 		{
-			String filePath = scs.getSakaiHomePath() + REPORT_FILE_NAME + timestamp + REPORT_ERRORS_SUFFIX;
+			String filePath = scs.getSakaiHomePath() + REPORT_DIR_NAME + File.separator + REPORT_FILE_NAME + timestamp + REPORT_ERRORS_SUFFIX;
 			try
 			{
 				Path outputFile = Paths.get(filePath);
@@ -149,7 +168,7 @@ public class FinalGradesReport implements Job
 		// Insert the header row
 		lines.add(0, REPORT_HEADER_ROW);
 
-		String filePath = scs.getSakaiHomePath() + REPORT_FILE_NAME + timestamp + REPORT_FILE_EXT;
+		String filePath = scs.getSakaiHomePath() + REPORT_DIR_NAME + File.separator + REPORT_FILE_NAME + timestamp + REPORT_FILE_EXT;
 		try (CSVWriter writer = new CSVWriter(new FileWriter(filePath)))
 		{
 			writer.writeAll(lines);

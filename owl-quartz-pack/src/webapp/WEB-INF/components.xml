@@ -98,6 +98,8 @@
         class="ca.uwo.owl.quartz.jobs.FinalGradesReport">
 
         <property name="scs" ref="org.sakaiproject.component.api.ServerConfigurationService" />
+        <property name="ss" ref="org.sakaiproject.site.api.SiteService" />
+        <property name="ags" ref="org.sakaiproject.authz.api.AuthzGroupService" />
     </bean>
 
     <bean id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.finalGradesReport"
