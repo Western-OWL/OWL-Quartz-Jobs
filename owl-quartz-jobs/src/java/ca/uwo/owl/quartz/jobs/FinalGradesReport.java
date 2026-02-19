@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -22,6 +23,9 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.sakaiproject.component.api.ServerConfigurationService;
+import org.sakaiproject.authz.api.AuthzGroupService;
+import org.sakaiproject.site.api.Site;
+import org.sakaiproject.site.api.SiteService;
 
 /**
  * Scans all course sites and compiles an outputFile of the number of unsubmitted final grades by section.
@@ -31,7 +35,10 @@ import org.sakaiproject.component.api.ServerConfigurationService;
 @Slf4j
 public class FinalGradesReport implements Job
 {
+
 	@Getter @Setter private ServerConfigurationService scs;
+	@Getter @Setter private SiteService             siteService;
+	@Getter @Setter private AuthzGroupService       authzGroupService;
 
 	private static final String REPORT_FILE_NAME = "finalGradesReport-";
 	private static final String REPORT_ERRORS_SUFFIX = "-ERRORS.txt";
@@ -46,13 +53,36 @@ public class FinalGradesReport implements Job
 	@Override
 	public void execute(JobExecutionContext ctx) throws JobExecutionException
 	{
-		// OWLTODO: impl
-
 		var data = new HashMap<ReportKey, ReportData>(1000);  // OWLTODO: revise sizing with real numbers for qat/prd
 		var errors = new ArrayList<String>();
 
+		// site iteration and data gathering goes here (build up Report)
+		// Loop through a list of all course sites
+		List<Site> sites = siteService.getSites(SiteService.SelectionType.ANY, "course", null, null, SiteService.SortType.NONE, null);
+		for (Site site : sites)
+		{
+			// Get the realm ID of the site; get the sections for the site
+			String realmID = siteService.siteReference(site.getId());
+			Set<String> sectionIDs = authzGroupService.getProviderIds(realmID);
+			SiteData siteData = new SiteData(site.getId(), site.getTitle());
+			for (String secID : sectionIDs)
+			{
+				ReportKey key = new ReportKey(secID, site.getId());
+
+				// OWLTODO: get section/dept data from services
+				SecData secData = new SecData("1", "Fake Section 1", "Fake Dept", "This is a fake department");
+
+				// OWLTODO: get grade data from services
+				FGData fg = new FGData(9, 1, 5);
+
+				ReportData rd = new ReportData(fg, siteData, secData);
+				data.put(key, rd);
+			}
+		}
+
+
 		// Dummy data; OWLTODO: remove this when we have services generating this data
-		errors.add("Fake error");
+		/*errors.add("Fake error");
 		ReportKey key = new ReportKey("1", "1");
 		FGData fg = new FGData(9, 1, 5);
 		SiteData site = new SiteData("1", "Fake Site 1");
@@ -65,10 +95,8 @@ public class FinalGradesReport implements Job
 		site = new SiteData("1", "Fake Site 1");
 		sec = new SecData("2", "Fake Section 2", "Fake Dept", "This is a fake department");
 		rd = new ReportData(fg, site, sec);
-		data.put(key, rd);
+		data.put(key, rd);*/
 		// End dummy data
-
-		// site iteration and data gathering goes here (build up Report)
 
 		var report = new Report(data, errors);
 
