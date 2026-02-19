@@ -59,7 +59,7 @@ public class FinalGradesReport implements Job
 	private static final String REPORT_FILE_NAME = "finalGradesReport-";
 	private static final String REPORT_ERRORS_SUFFIX = "-ERRORS.txt";
 	private static final String REPORT_FILE_EXT = ".csv";
-	private static final String[] REPORT_HEADER_ROW = { "Site Title", "Site ID", "Section Title", "Department Title", "Department Description", "# Revised", "# Added", "# Removed"};
+	private static final String[] REPORT_HEADER_ROW = { "Site Title", "Site ID", "Section Title", "Department Title", "Department Description", "# Revised", "# Added", "# Removed" };
 
 	public void init()
 	{
@@ -75,7 +75,8 @@ public class FinalGradesReport implements Job
 			return;
 		}
 
-		var data = new HashMap<ReportKey, ReportData>(1000);  // OWLTODO: revise sizing with real numbers for qat/prd
+		// PRD non-deleted course sites: 83,535
+		var data = new HashMap<ReportKey, ReportData>(/*83535*/);  // OWLTODO: uncomment this when ready for DEV/QAT deploy
 		var errors = new ArrayList<String>();
 
 		// Loop through a list of all course sites
