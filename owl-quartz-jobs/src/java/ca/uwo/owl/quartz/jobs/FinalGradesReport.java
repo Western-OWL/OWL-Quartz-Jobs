@@ -30,6 +30,7 @@ import org.sakaiproject.coursemanagement.api.CourseOffering;
 import org.sakaiproject.coursemanagement.api.CourseSet;
 import org.sakaiproject.coursemanagement.api.Section;
 import org.sakaiproject.coursemanagement.api.exception.IdNotFoundException;
+import org.sakaiproject.service.gradebook.shared.GradebookService;
 import org.sakaiproject.service.gradebook.shared.owl.OwlGradebookService;
 import org.sakaiproject.service.gradebook.shared.owl.finalgrades.report.FGChanges;
 import org.sakaiproject.site.api.Site;
@@ -51,9 +52,9 @@ public class FinalGradesReport implements Job
 	@Getter @Setter private SiteService ss;
 	@Getter @Setter private AuthzGroupService ags;
 	@Getter @Setter private CourseManagementService cms;
-	@Getter @Setter private OwlGradebookService ogs;
+	@Getter @Setter private GradebookService gs;
+	private OwlGradebookService ogs;
 
-	private static final String DELIMITER = " || ";
 	private static final String REPORT_DIR_NAME = "finalGradesReports";
 	private static final String REPORT_FILE_NAME = "finalGradesReport-";
 	private static final String REPORT_ERRORS_SUFFIX = "-ERRORS.txt";
@@ -62,7 +63,7 @@ public class FinalGradesReport implements Job
 
 	public void init()
 	{
-		// OWLTODO: any init here
+		ogs = gs.owlDoNotCall();
 	}
 
 	@Override
@@ -78,7 +79,6 @@ public class FinalGradesReport implements Job
 		var errors = new ArrayList<String>();
 
 		// Loop through a list of all course sites
-		// OWLTODO: softly deleted sites desired? SelectionType.ANY ignores them
 		List<Site> sites = ss.getSites(SiteService.SelectionType.ANY, "course", null, null, SiteService.SortType.NONE, null);
 		for (Site site : sites)
 		{
@@ -118,10 +118,13 @@ public class FinalGradesReport implements Job
 					deptDescriptions.add(set.getDescription());
 				}
 
-				SecData sd = new SecData(sec.getEid(), sec.getTitle(), String.join(DELIMITER, deptTitles), String.join(DELIMITER, deptDescriptions));
 				FGChanges fgc = ogs.getFinalGradeChanges(siteID, secEID);
-				ReportData rd = new ReportData(new FGData(fgc.revised, fgc.added, fgc.removed), new SiteData(siteID, site.getTitle()), sd);
-				data.put(new ReportKey(secEID, siteID), rd);
+				for (int i = 0; i < deptTitles.size(); i++)
+				{
+					SecData sd = new SecData(sec.getEid(), sec.getTitle(), deptTitles.get(i), deptDescriptions.get(i));
+					ReportData rd = new ReportData(new FGData(fgc.revised, fgc.added, fgc.removed), new SiteData(siteID, site.getTitle()), sd);
+					data.put(new ReportKey(secEID, siteID), rd);
+				}
 			}
 		}
 
