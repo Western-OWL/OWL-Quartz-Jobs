@@ -30,6 +30,7 @@ import org.sakaiproject.coursemanagement.api.CourseOffering;
 import org.sakaiproject.coursemanagement.api.CourseSet;
 import org.sakaiproject.coursemanagement.api.Section;
 import org.sakaiproject.coursemanagement.api.exception.IdNotFoundException;
+import org.sakaiproject.service.gradebook.shared.GradebookNotFoundException;
 import org.sakaiproject.service.gradebook.shared.GradebookService;
 import org.sakaiproject.service.gradebook.shared.owl.OwlGradebookService;
 import org.sakaiproject.service.gradebook.shared.owl.finalgrades.report.FGChanges;
@@ -83,49 +84,56 @@ public class FinalGradesReport implements Job
 		List<Site> sites = ss.getSites(SiteService.SelectionType.ANY, "course", null, null, SiteService.SortType.NONE, null);
 		for (Site site : sites)
 		{
-			// Get the realm ID of the site; get the sections for the site
-			String siteID = site.getId();
-			String realmID = ss.siteReference(siteID);
-			Set<String> sectionEIDs = ags.getProviderIds(realmID);
-			for (String secEID : sectionEIDs)
+			try
 			{
-				Section sec = getSection(secEID);
-				if (sec == null)
+				// Get the realm ID of the site; get the sections for the site
+				String siteID = site.getId();
+				String realmID = ss.siteReference(siteID);
+				Set<String> sectionEIDs = ags.getProviderIds(realmID);
+				for (String secEID : sectionEIDs)
 				{
-					errors.add("Unable to get section by EID: " + secEID);
-					continue;
-				}
-
-				CourseOffering offering = getCourseOffering(sec.getCourseOfferingEid());
-				if (offering == null)
-				{
-					errors.add("Unable to get course offering by EID: " + sec.getCourseOfferingEid());
-					continue;
-				}
-
-				Set<String> setEIDs = offering.getCourseSetEids();
-				List<String> deptTitles = new ArrayList<>(setEIDs.size());
-				List<String> deptDescriptions = new ArrayList<>(setEIDs.size());
-				for (String setEID : setEIDs)
-				{
-					CourseSet set = getCourseSet(setEID);
-					if (set == null)
+					Section sec = getSection(secEID);
+					if (sec == null)
 					{
-						errors.add("Unable to get course set by EID: " + setEID);
+						errors.add("Unable to get section by EID: " + secEID);
 						continue;
 					}
 
-					deptTitles.add(set.getTitle());
-					deptDescriptions.add(set.getDescription());
-				}
+					CourseOffering offering = getCourseOffering(sec.getCourseOfferingEid());
+					if (offering == null)
+					{
+						errors.add("Unable to get course offering by EID: " + sec.getCourseOfferingEid());
+						continue;
+					}
 
-				FGChanges fgc = ogs.getFinalGradeChanges(siteID, secEID);
-				for (int i = 0; i < deptTitles.size(); i++)
-				{
-					SecData sd = new SecData(sec.getEid(), sec.getTitle(), deptTitles.get(i), deptDescriptions.get(i));
-					ReportData rd = new ReportData(new FGData(fgc.revised, fgc.added, fgc.removed), new SiteData(siteID, site.getTitle()), sd);
-					data.put(new ReportKey(secEID, siteID), rd);
+					Set<String> setEIDs = offering.getCourseSetEids();
+					List<String> deptTitles = new ArrayList<>(setEIDs.size());
+					List<String> deptDescriptions = new ArrayList<>(setEIDs.size());
+					for (String setEID : setEIDs)
+					{
+						CourseSet set = getCourseSet(setEID);
+						if (set == null)
+						{
+							errors.add("Unable to get course set by EID: " + setEID);
+							continue;
+						}
+
+						deptTitles.add(set.getTitle());
+						deptDescriptions.add(set.getDescription());
+					}
+
+					FGChanges fgc = ogs.getFinalGradeChanges(siteID, secEID);
+					for (int i = 0; i < deptTitles.size(); i++)
+					{
+						SecData sd = new SecData(sec.getEid(), sec.getTitle(), deptTitles.get(i), deptDescriptions.get(i));
+						ReportData rd = new ReportData(new FGData(fgc.revised, fgc.added, fgc.removed), new SiteData(siteID, site.getTitle()), sd);
+						data.put(new ReportKey(secEID, siteID), rd);
+					}
 				}
+			}
+			catch (GradebookNotFoundException gnfe)
+			{
+				errors.add("Site " + site.getTitle() + " (" + site.getId() + ") has no gradebook.");
 			}
 		}
 
