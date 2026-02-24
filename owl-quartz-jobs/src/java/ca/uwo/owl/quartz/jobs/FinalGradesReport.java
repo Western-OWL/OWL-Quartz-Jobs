@@ -95,14 +95,14 @@ public class FinalGradesReport implements Job
 					Section sec = getSection(secEID);
 					if (sec == null)
 					{
-						errors.add("Unable to get section by EID: " + secEID);
+						errors.add("Unable to get section by EID: " + secEID + " (site " + siteID + ")");
 						continue;
 					}
 
 					CourseOffering offering = getCourseOffering(sec.getCourseOfferingEid());
 					if (offering == null)
 					{
-						errors.add("Unable to get course offering by EID: " + sec.getCourseOfferingEid());
+						errors.add("Unable to get course offering by EID: " + sec.getCourseOfferingEid() + " (site " + siteID + ")");
 						continue;
 					}
 
@@ -114,7 +114,7 @@ public class FinalGradesReport implements Job
 						CourseSet set = getCourseSet(setEID);
 						if (set == null)
 						{
-							errors.add("Unable to get course set by EID: " + setEID);
+							errors.add("Unable to get course set by EID: " + setEID + " (site " + siteID + ")");
 							continue;
 						}
 
