@@ -32,7 +32,6 @@ import org.sakaiproject.coursemanagement.api.Section;
 import org.sakaiproject.coursemanagement.api.exception.IdNotFoundException;
 import org.sakaiproject.service.gradebook.shared.GradebookNotFoundException;
 import org.sakaiproject.service.gradebook.shared.GradebookService;
-import org.sakaiproject.service.gradebook.shared.owl.OwlGradebookService;
 import org.sakaiproject.service.gradebook.shared.owl.finalgrades.report.FGChanges;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
@@ -54,7 +53,6 @@ public class FinalGradesReport implements Job
 	@Getter @Setter private AuthzGroupService ags;
 	@Getter @Setter private CourseManagementService cms;
 	@Getter @Setter private GradebookService gs;
-	private OwlGradebookService ogs;
 
 	private static final String REPORT_DIR_NAME = "finalGradesReports";
 	private static final String REPORT_FILE_NAME = "finalGradesReport-";
@@ -62,9 +60,11 @@ public class FinalGradesReport implements Job
 	private static final String REPORT_FILE_EXT = ".csv";
 	private static final String[] REPORT_HEADER_ROW = { "Site Title", "Site ID", "Section Title", "Department Title", "Department Description", "# Revised", "# Added", "# Removed" };
 
+	private static final int PRD_SITE_COUNT = 83535;  // PRD non-deleted course sites: 83,535
+
 	public void init()
 	{
-		ogs = gs.owlDoNotCall();
+		// any init here
 	}
 
 	@Override
@@ -76,14 +76,22 @@ public class FinalGradesReport implements Job
 			return;
 		}
 
-		// PRD non-deleted course sites: 83,535
-		var data = new HashMap<ReportKey, ReportData>(/*83535*/);  // OWLTODO: uncomment this when ready for DEV/QAT deploy
+		int limit = scs.getInt("finalGradesReportJob.site.limit", PRD_SITE_COUNT);
+		var data = new HashMap<ReportKey, ReportData>(limit);
 		var errors = new ArrayList<String>();
 
-		// Loop through a list of all course sites
+		// Loop through a list of all course sites (excluding softly deleted)
 		List<Site> sites = ss.getSites(SiteService.SelectionType.ANY, "course", null, null, SiteService.SortType.NONE, null);
+		int count = 0;
+		boolean limited = limit < PRD_SITE_COUNT;
 		for (Site site : sites)
 		{
+			++count;
+			if (limited && count > limit)
+			{
+				log.info("Site limit hit, aborting main loop.");
+				break;
+			}
 			try
 			{
 				// Get the realm ID of the site; get the sections for the site
@@ -101,7 +109,7 @@ public class FinalGradesReport implements Job
 
 					var depts = getDepts(sec);
 
-					FGChanges fgc = ogs.getFinalGradeChanges(siteID, secEID);
+					FGChanges fgc = gs.getFinalGradeChanges(siteID, secEID);
 					for (var dept : depts)
 					{
 						SecData sd = new SecData(sec.getEid(), sec.getTitle(), dept.title, dept.desc);
@@ -115,6 +123,8 @@ public class FinalGradesReport implements Job
 				errors.add("Site " + site.getTitle() + " (" + site.getId() + ") has no gradebook.");
 			}
 		}
+
+		log.info("Processed " + count + " sites.");
 
 		// outputFile compilation and saving goes here (consume Report)
 		long timestamp = System.currentTimeMillis(); // Use the same timestamp for both files
@@ -238,7 +248,7 @@ public class FinalGradesReport implements Job
 										Integer.toString(d.fg.added), Integer.toString(d.fg.removed)}).collect(Collectors.toList());
 		if (lines.isEmpty())
 		{
-			log.info("No final grades to report!");
+			log.error("No final grades to report!");
 			return;
 		}
 
@@ -290,7 +300,7 @@ public class FinalGradesReport implements Job
 	}
 
 	/**
-	 * This class exists to support the remote possibility there are multiple sites with the same section.
+	 * This class exists to support the rare case where there are multiple sites with the same section.
 	 * It combines the section eid with the site id to create a unique value. We use this as a map key to avoid
 	 * having to create a list for every value.
 	 */
