@@ -99,33 +99,12 @@ public class FinalGradesReport implements Job
 						continue;
 					}
 
-					CourseOffering offering = getCourseOffering(sec.getCourseOfferingEid());
-					if (offering == null)
-					{
-						errors.add("Unable to get course offering by EID: " + sec.getCourseOfferingEid() + " (site " + siteID + ")");
-						continue;
-					}
-
-					Set<String> setEIDs = offering.getCourseSetEids();
-					List<String> deptTitles = new ArrayList<>(setEIDs.size());
-					List<String> deptDescriptions = new ArrayList<>(setEIDs.size());
-					for (String setEID : setEIDs)
-					{
-						CourseSet set = getCourseSet(setEID);
-						if (set == null)
-						{
-							errors.add("Unable to get course set by EID: " + setEID + " (site " + siteID + ")");
-							continue;
-						}
-
-						deptTitles.add(set.getTitle());
-						deptDescriptions.add(set.getDescription());
-					}
+					var depts = getDepts(sec);
 
 					FGChanges fgc = ogs.getFinalGradeChanges(siteID, secEID);
-					for (int i = 0; i < deptTitles.size(); i++)
+					for (var dept : depts)
 					{
-						SecData sd = new SecData(sec.getEid(), sec.getTitle(), deptTitles.get(i), deptDescriptions.get(i));
+						SecData sd = new SecData(sec.getEid(), sec.getTitle(), dept.title, dept.desc);
 						ReportData rd = new ReportData(new FGData(fgc.revised, fgc.added, fgc.removed), new SiteData(siteID, site.getTitle()), sd);
 						data.put(new ReportKey(secEID, siteID), rd);
 					}
@@ -141,6 +120,30 @@ public class FinalGradesReport implements Job
 		long timestamp = System.currentTimeMillis(); // Use the same timestamp for both files
 		outputReport(new Report(data, errors), timestamp);
 		outputErrors(errors, timestamp);
+	}
+
+	private List<DeptData> getDepts(Section sec)
+	{
+		CourseOffering offering = getCourseOffering(sec.getCourseOfferingEid());
+		Set<String> setEIDs = offering == null ? Set.of() : offering.getCourseSetEids();
+		List<DeptData> depts = new ArrayList<>(setEIDs.size());
+		for (String setEID : setEIDs)
+		{
+			CourseSet set = getCourseSet(setEID);
+			if (set == null)
+			{
+				continue;
+			}
+
+			depts.add(new DeptData(set.getTitle(), set.getDescription()));
+		}
+
+		if (depts.isEmpty())
+		{
+			depts.add(new DeptData("No dept found", "No dept found"));
+		}
+
+		return depts;
 	}
 
 	private Section getSection(String sectionEID)
@@ -270,6 +273,12 @@ public class FinalGradesReport implements Job
 	private static class SecData
 	{
 		private final String eid, title, deptTitle, deptDesc;
+	}
+
+	@AllArgsConstructor
+	private static class DeptData
+	{
+		private final String title, desc;
 	}
 
 	@AllArgsConstructor
