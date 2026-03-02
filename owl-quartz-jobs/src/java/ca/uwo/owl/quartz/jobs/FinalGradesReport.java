@@ -122,6 +122,11 @@ public class FinalGradesReport implements Job
 			{
 				errors.add("Site " + site.getTitle() + " (" + site.getId() + ") has no gradebook.");
 			}
+			catch (Exception e)
+			{
+				errors.add("Encountered an unexpected exception while processing site: " + site.getId());
+				log.error("Error processing site: " + site.getId(), e);
+			}
 		}
 
 		log.info("Processed " + count + " sites.");
